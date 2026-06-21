@@ -484,6 +484,45 @@
     .list-polish { font-size: 0.82rem; color: #333; font-weight: 500; }
     .list-latin { font-size: 0.72rem; color: #888; font-style: italic; }
     .list-qty { font-size: 0.72rem; color: #aaa; }
+
+    /* Tips in modal */
+    .tips-section { margin-top: 16px; }
+    .tips-block { background: #f8f9fa; border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; font-size: 0.82rem; line-height: 1.6; color: #333; }
+    .tips-block.ogrodnik { border-left: 3px solid #2e7d32; background: #f1f8f1; }
+    .tips-block.research { border-left: 3px solid #1565c0; background: #f0f4ff; }
+    .tips-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+    .tips-label.ogrodnik { color: #2e7d32; }
+    .tips-label.research { color: #1565c0; }
+
+    /* Porady ogólne panel */
+    .porady-panel {
+      display: none; position: fixed; left: 16px; top: 100px;
+      width: 340px; max-height: calc(100vh - 116px);
+      background: white; border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      z-index: 50; overflow-y: auto;
+    }
+    .porady-panel.open { display: block; }
+    .porady-panel-header {
+      position: sticky; top: 0; background: white; z-index: 2;
+      padding: 16px 18px 12px; border-bottom: 1px solid #f0f0f0;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .porady-panel-header h2 { font-size: 0.95rem; font-weight: 700; margin: 0; }
+    .porady-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #888; padding: 0 4px; }
+    .porady-section { padding: 14px 18px; border-bottom: 1px solid #f5f5f5; }
+    .porady-section:last-child { border-bottom: none; }
+    .porady-section-title {
+      font-size: 0.8rem; font-weight: 700; color: #333;
+      margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+    }
+    .porady-section-title .ico { font-size: 1rem; }
+    .porady-block { font-size: 0.79rem; line-height: 1.65; color: #444; margin-bottom: 8px; }
+    .porady-block.mz { border-left: 3px solid #2e7d32; background: #f1f8f1; border-radius: 0 6px 6px 0; padding: 8px 10px; }
+    .porady-block.ai { border-left: 3px solid #1565c0; background: #f0f4ff; border-radius: 0 6px 6px 0; padding: 8px 10px; }
+    .porady-source { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 4px; }
+    .porady-source.mz { color: #2e7d32; }
+    .porady-source.ai { color: #1565c0; }
   </style>
 </head>
 <body>
@@ -495,6 +534,7 @@
   </div>
   <div class="header-actions">
     <button class="btn btn-secondary" onclick="toggleList()">Lista roślin</button>
+    <button class="btn btn-secondary" onclick="togglePorady()">Porady ogólne</button>
     <button class="btn btn-secondary" id="edit-btn" onclick="toggleEdit()" style="display:none">Tryb edycji pozycji</button>
   </div>
 </header>
@@ -514,6 +554,52 @@
     </div>
   </div>
 </div>
+
+<div class="porady-panel" id="porady-panel">
+  <div class="porady-panel-header">
+    <h2>Porady ogólne</h2>
+    <button class="porady-close" onclick="togglePorady()">×</button>
+  </div>
+
+  <div class="porady-section">
+    <div class="porady-section-title"><span class="ico">🌱</span> Pierwsze tygodnie po założeniu</div>
+    <div class="porady-block mz"><div class="porady-source mz">Ogrodnik</div>Przez pierwsze dwa miesiące jest najwięcej pracy. Raz w tygodniu obejdź ogród i wyrwij to, co zaczyna dominować — szczególnie między kamieniami, w karmnikach i przy ogrodzeniu (trzciny i odrosty od sąsiadów). Celowo nie zastosowano agrowłókniny — bardziej szkodzi niż pomaga. Kora ogranicza chwasty, ale nasiona w glebie i tak będą kiełkować.</div>
+    <div class="porady-block mz"><div class="porady-source mz">Ogrodnik</div>Jeśli roślina wypadnie w pierwszych miesiącach po posadzeniu, zostanie wymieniona przez wykonawcę. Przy wymianach w przyszłości najpierw wyślij zdjęcie na WhatsApp — niektóre zamienniki mogą z czasem różnić się pokrojem.</div>
+  </div>
+
+  <div class="porady-section">
+    <div class="porady-section-title"><span class="ico">💧</span> Podlewanie</div>
+    <div class="porady-block mz"><div class="porady-source mz">Ogrodnik</div>Gleba ma być wilgotna, ale nie mokra. Test: ściśnięta ziemia tworzy kulkę, która po dotknięciu się rozpada — nie może być błota ani zapachu zgnilizny. Gleba jest ciężka i wilgotna, dlatego nawadnianie ustawiono na ok. 20 minut (zamiast standardowych 30–40).</div>
+    <div class="porady-block mz"><div class="porady-source mz">Ogrodnik</div>Karmnik ościsty jest wyłączony z automatycznego nawadniania — przy nadmiarze wody wygniwa. Podczas suszy podlewaj go ręcznie z węża, ostrożnie. Cała reszta, łącznie z berberysami z frontu, jest objęta systemem.</div>
+    <div class="porady-block ai"><div class="porady-source ai">Research</div>Nawadnianie podporządkuj roślinom wrażliwym na zastoje wody: ostnica, sesleria, lawenda, sedum i karmnik giną częściej od nadmiaru wody niż od mrozu. Jeśli te rośliny są na jednej sekcji z bylinami o większych potrzebach, rozważ osobne strefy.</div>
+  </div>
+
+  <div class="porady-section">
+    <div class="porady-section-title"><span class="ico">✂️</span> Cięcie — zasada ogólna</div>
+    <div class="porady-block mz"><div class="porady-source mz">Ogrodnik</div>Jesienią tnij oszczędnie — suche pędy chronią rośliny zimą. Trawy, liliowce i większość bylin zostaw do wiosny. Wiosną przytnij praktycznie wszystko: szałwie, jeżówki, liliowce, piwonie, krwawnicę — „do zera". Trawy zostaw ok. 5 cm. Hortensje tnij krótko. Z całej grupy bylin tylko bergenia zostaje nieprzycięta.</div>
+    <div class="porady-block ai"><div class="porady-source ai">Research</div>Trawy i bergenię/ciemierniki czyść zanim ruszy wegetacja (luty–marzec; trzcinnik i sesleria startują pierwsze). Hortensję bukietową tnij mocno (kwitnie na pędach tegorocznych). Lawendy nigdy nie tnij w stare, zdrewniałe drewno. Formy szczepione (surmia, wierzba 'Hakuro-nishiki') wymagają usuwania odrostów spod miejsca szczepienia.</div>
+  </div>
+
+  <div class="porady-section">
+    <div class="porady-section-title"><span class="ico">🌿</span> Nawożenie</div>
+    <div class="porady-block mz"><div class="porady-source mz">Ogrodnik</div>Nowo założonego ogrodu na razie nie nawozić. Trawnik można zasilić ponownie ok. 1,5 miesiąca po posadzeniu. Trawnik nawozi się osobno od rabat.</div>
+    <div class="porady-block ai"><div class="porady-source ai">Research</div>Na rabatach obowiązuje zasada „mniej znaczy lepiej": lawenda, trzmielina, miskant, rozplenica, ostnica, sedum, szałwia, werbena i berberys źle reagują na nadmiar azotu — bujny przyrost kosztem kwitnienia i gorsze zimowanie. Wyjątek: hortensja bukietowa — nawóź regularnie od marca do sierpnia.</div>
+  </div>
+
+  <div class="porady-section">
+    <div class="porady-section-title"><span class="ico">🐛</span> Szkodniki i opryski</div>
+    <div class="porady-block mz"><div class="porady-source mz">Ogrodnik</div>Ślimaki: szczególnie pilnuj funkii (hosty) — to ich przysmak. Granulat na ślimaki lub zbieranie ręczne, konsekwentnie. Karmnik rozsiewa się sam; na trawniku przegra z trawą, jest wrażliwy na oprysk.</div>
+    <div class="porady-block mz"><div class="porady-source mz">Ogrodnik</div>Oprysk na komary w tak małym ogrodzie jest mało skuteczny — nalatują z sąsiednich działek. Preparat odstrasza ok. 2 tygodnie; regularne zabiegi nie mają uzasadnienia.</div>
+    <div class="porady-block ai"><div class="porady-source ai">Research</div>Warto kontrolować sezonowo: pryszczarka liliowcowego (zgrubiałe, brązowiejące pąki — zbierać i niszczyć), szarą pleśń na piwoniach (przewiew), czarną plamistość ciemierników (usuwanie starych liści zimą) oraz przędziorki i tarczniki na trzmielinach (spody liści).</div>
+  </div>
+
+  <div class="porady-section">
+    <div class="porady-section-title"><span class="ico">📅</span> Perspektywa i rozwój</div>
+    <div class="porady-block mz"><div class="porady-source mz">Ogrodnik</div>Ogród jest organizmem. Przez pierwsze dwa lata wrażenie „ale małe" jest normalne — realne oceny i zmiany robi się po ok. 3 latach. Po pięciu ogród może być bardzo bujny. Projekt jest bylinowo-trawiasty, z niższymi roślinami z przodu i wyższym piętrem (miskanty 'Flamingo') przy ogrodzeniu, które z czasem zarośnie trzmieliną.</div>
+    <div class="porady-block mz"><div class="porady-source mz">Ogrodnik</div>Z bardziej wymagających roślin: ambrowiec może potrzebować nawożenia i zimowego okrycia. Większość pozostałych dobrano jako mało wymagające i dobrze zimujące. Jesienią warto sprawdzić system nawadniania (przedmuchanie); zalecana wizyta wiosenna: cięcie, nawożenie, pokaz.</div>
+  </div>
+</div>
+
 
 <!-- Modal / Popup -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
@@ -1197,6 +1283,48 @@ const plants = {
 
 // ─── Group Metadata ───────────────────────────────────────────────────────────
 
+// ─── Szczegółowe zalecenia pielęgnacyjne (źródła: ogrodnik + research) ────────
+const plantTips = {
+  1: { ai: "Znosi cięcie doskonale, nawet w stare drewno; formowanie późną wiosną, ewentualnie powtórka w sierpniu. Choroby: opuchlaki (larwy podgryzają korzenie), zgnilizna przy zastoinach wody. ⚠️ Silnie trujący — igły i nasiona są niebezpieczne." },
+  2: { ai: "Cięcie coroczne wczesną wiosną, intensywne (redukcja nawet 50–60% korony) — zagęszcza kulę. Nie tnij jesienią. Usuwaj odrosty z pnia i spod miejsca szczepienia. Zabezpiecz miejsce szczepienia przez pierwsze 2–3 zimy. Odmiana nie kwitnie." },
+  3: { ogrodnik: "Jedna z bardziej wymagających roślin w ogrodzie. Może potrzebować nawożenia i zimowego okrycia — w mroźniejsze zimy potrafi przemarzać, ale zwykle odbija.", ai: "Młode rośliny wrażliwe na mróz, mrozoodporność rośnie z wiekiem; wcześnie rusza wiosną i bywa uszkadzany przez przymrozki. Pierwsze lata solidnie okrywać i kopczykować. Sadzić w miejscu osłoniętym od wiatru. Nawożenie wiosną (kompost lub nawóz do drzew ozdobnych). Palikować młode drzewo." },
+  4: { ai: "Pułapka: wiśnie ozdobne źle znoszą cięcie i są wrażliwe na raka bakteryjnego — unikaj go; jeśli konieczne, latem w suchy dzień, rany zabezpiecz maścią. Usuwaj odrosty z podkładki. Przymrozki mogą uszkadzać pąki kwiatowe. Szkodniki: mszyce, plamistość liści, mączniak — usuwać opadłe liście." },
+  5: { ogrodnik: "Berberysy z frontu objęte automatycznym nawadnianiem.", ai: "Cięcie lekkie formujące raz w roku po kwitnieniu, odmładzające co kilka lat. Pracuj w rękawicach (kolce!). Choroby: mączniak, rzadziej rdza; mszyce. Stanowisko słoneczne i przewiewne, bez nadmiaru azotu. Odmiana 'Admiration' (żółta obwódka) może ulegać rewersji — zielone pędy wycinać." },
+  6: { ogrodnik: "Berberysy z frontu objęte automatycznym nawadnianiem.", ai: "Cięcie lekkie formujące po kwitnieniu, odmładzające co kilka lat. Pracuj w rękawicach (kolce!). Choroby: mączniak, mszyce. Barwne liście najlepiej wybarwiają się w pełnym słońcu — unikaj nadmiaru azotu." },
+  7: { ai: "Klucz do efektu: czerwone pędy wybarwiają się na przyrostach 1–2-letnich — tnij mocno i nisko wczesną wiosną (luty–marzec). Wycinaj zielone rewersje. W pełni mrozoodporny. Najlepsze wybarwienie po mroźnej, słonecznej zimie i na pełnym słońcu." },
+  8: { ogrodnik: "Jesienią przebarwia się na czerwono — efektowny element ozdobny.", ai: "Cięcie tylko sanitarne (wolno rosnąca). Szkodniki: mszyce, przędziorki (suche lata), tarczniki — sprawdzaj spody liści. Pułapka: unikaj nadmiaru azotu, bo bujny wzrost odbywa się kosztem ognistego wybarwienia jesiennego." },
+  9: { ogrodnik: "Prowadź po ogrodzeniu — delikatnie wplataj/podwiązuj dla szybszego tła. Pilnuj, żeby pędy nie szły płasko po ziemi i nie ukorzeniały się w rabatach.", ai: "Pielęgnacja jak forma krzewiasta: skracaj pędy dla zwartej formy; kontroluj mszyce/przędziorki/tarczniki; nie przekarmiaj azotem (wybarwienie jesienne)." },
+  10: { ogrodnik: "Prowadź po ogrodzeniu — kontrola pędów przy ziemi jak dla pozostałych roślin pnących.", ai: "Pułapka: u tej pstrolistnej odmiany pojawiają się zielone rewersje — usuwać. Zimozielona; w ostrzejsze zimy może przemarzać (szczególnie młoda) — okryć i dobrze podlać przed zimą. W cieniu pstre wybarwienie blednie." },
+  11: { ogrodnik: "Tnij krótko wiosną.", ai: "Kwitnie na pędach tegorocznych — mocne cięcie wczesną wiosną (marzec/kwiecień), do ok. 30–60 cm nad zdrowe pąki. Nawożenie regularne marzec–sierpień — wyraźnie wpływa na wielkość kwiatów. Duże wiechy mogą wymagać podpór." },
+  12: { ogrodnik: "Tnij krótko wiosną.", ai: "Kwitnie na pędach tegorocznych — mocne cięcie wczesną wiosną. Nawożenie regularne marzec–sierpień. Duże wiechy mogą wymagać podpór." },
+  13: { ogrodnik: "Ścinaj przekwitnięte łodyżki do liści. Jest szansa na ponowne kwitnienie jesienią, choć w pierwszym roku po posadzeniu może być słabsze.", ai: "Pułapka: nigdy nie tnij w stare, zdrewniałe drewno — słabo z niego odbija. Główne cięcie wczesną wiosną (skróć zielone pędy o ok. ⅓), drugie lekkie po kwitnieniu. Nawożenie minimalne. Sucho, słonecznie, przewiewnie — zapobiega chorobom grzybowym." },
+  14: { ogrodnik: "Tnij według uznania: lekko uszczykuj końcówki dla zagęszczenia, mocniej dla zmniejszenia kuli. Roślina krótkowieczna — po ok. 10 latach zwykle wymaga wymiany.", ai: "Biało-różowe liście pojawiają się tylko na młodych przyrostach — dla koloru tnij regularnie (mocno wiosną, drugie cięcie latem do początku sierpnia). Usuwaj odrosty spod miejsca szczepienia. Okryj miejsce szczepienia na zimę. Cienki pień palikować. Możliwy mączniak przy słabym przewiewie." },
+  15: { ogrodnik: "Powinien czepiać się sam, choć w pełnym słońcu bywa z tym problem. Jeśli odpada — mały kołek od góry lub żyłka. Pilnuj, żeby nie schodził na ziemię — pędy łatwo się ukorzeniają.", ai: "Bardzo silny wzrost — mocne cięcie wiosną, formowanie w lipcu; kontroluj by nie wchodził pod rynny i w okna. W Poznaniu radzi sobie dobrze, ale młode rośliny kopczykować i okryć (odbija od korzenia). Latem kwiaty wabią owady; liście nie niszczą tynku." },
+  16: { ogrodnik: "Pięć róż przy tarasie. Na bieżąco ścinaj przekwitnięte kwiaty — wtedy kwitną intensywniej. Pędy wchodzące na trawnik można przycinać według uznania.", ai: "Wyjątkowo odporna: mała podatność na czarną plamistość i mączniaka. Rośnie na własnych korzeniach (brak odrostów z podkładki), dobrze regeneruje od podstawy po przemarznięciu. Dla odmłodzenia skróć wczesną wiosną do ok. 20 cm. Praktycznie bezobsługowa." },
+  17: { ogrodnik: "Ścinaj przekwitnięte kwiaty — wtedy kwitną intensywniej. Pędy wchodzące na trawnik przycinaj według uznania.", ai: "Wyjątkowo odporna, mała podatność na czarną plamistość i mączniaka. Rośnie na własnych korzeniach. Dla odmłodzenia skróć wczesną wiosną do ok. 20 cm. Praktycznie bezobsługowa." },
+  18: { ogrodnik: "Jedyna bylina, która zostaje nieprzycięta na wiosnę — zachowuje liście.", ai: "Zimozielona, wiosną usuwać tylko stare i uszkodzone mrozem liście; po kwitnieniu — przekwitłe pędy. Choroby: plamistość liści (nadmiar azotu sprzyja), opuchlaki. Co kilka lat dzielić kłącza." },
+  19: { ogrodnik: "Może już być po kwitnieniu lub kończyć kwitnienie. Należy do niższego piętra przy płocie; w razie potrzeby można w przyszłości wymienić na coś bardziej punktowego.", ai: "Pułapka: biało obrzeżone liście parzą się w słońcu — sadzić w cieniu/półcieniu. Samosiewy nie powtarzają wybarwienia — rozmnażać tylko przez podział. Stare liście usuwać wczesną wiosną (nie jesienią). Coraz częściej ślimaki na młodych przyrostach." },
+  20: { ai: "Tnij nisko wczesną wiosną, zanim ruszy wegetacja — startuje bardzo wcześnie, już w marcu. Odmiana sterylna (nie rozsiewa się), sztywne pędy nie pokładają się. W pełni mrozoodporny." },
+  21: { ai: "Przekwitłe koszyczki można zostawić na zimę (ozdoba, ptaki) i ściąć wczesną wiosną. Kluczowy drenaż — zimą korzenie gniją przy zastoinach. Możliwy mączniak, żółtaczka astrowata (porażone usuwać), ślimaki. Uwaga: barwne mieszańce jak 'Coral Reef' bywają mniej trwałe — planuj dosadzanie." },
+  22: { ai: "Przekwitłe koszyczki można zostawić na zimę. Kluczowy drenaż — korzenie gniją przy zastoinach wody. Możliwy mączniak, ślimaki. Cięcie wiosenne — do zera." },
+  23: { ai: "Wiosną delikatnie wyczesz lub przytnij stare liście. W surowe zimy zabezpieczyć ściółką. Stanowisko półcieniste/cieniste, osłonięte od wiatru. Przy nadmiernej wilgoci możliwa pleśń śniegowa." },
+  24: { ogrodnik: "Zimą i wczesną wiosną będą widoczne i zakwitną, gdy inne rośliny zaschną. Docelowo urosną, choć pozostaną niższe niż piwonie.", ai: "Najważniejszy zabieg: usuwać stare liście w grudniu, tuż przed pąkami — zapobiega czarnej plamistości i odsłania kwiaty (usunięte liście niszczyć, nie kompostować). ⚠️ Cała roślina trująca, sok parzy — rękawice! Nie lubi przesadzania. W bezśnieżne mrozy okryć." },
+  25: { ogrodnik: "Zimą i wczesną wiosną będą widoczne i zakwitną, gdy inne rośliny zaschną.", ai: "Usuwać stare liście w grudniu przed pąkami — zapobiega czarnej plamistości. ⚠️ Cała roślina trująca, sok parzy — rękawice! Nie lubi przesadzania. W bezśnieżne mrozy okryć." },
+  26: { ogrodnik: "Dużo wyższy nie urośnie. Zostaw na jesień, przytnij dopiero wiosną.", ai: "Usuwanie przekwitłych kwiatów stymuluje powtarzające się kwitnienie do września. Kluczowy szkodnik: pryszczarek liliowcowy — larwy w pąkach, które grubieją, brązowieją i zasychają (upodobał sobie odmiany żółtokwiatowe jak 'Stella de Oro'). Zbierać i niszczyć zgrubiałe pąki; oprysk wczesną wiosną jeśli wystąpił rok wcześniej." },
+  27: { ogrodnik: "Przysmak ślimaków — pilnować szczególnie. Granulat na ślimaki albo konsekwentne zbieranie ręczne.", ai: "Profilaktyka: podlewanie rano (nie wieczorem), porządek wokół kęp, preparaty żelazowe (Ferramol), miedziane opaski. Odmiana 'Patriot' ma dość grube liście — mniej atrakcyjne dla ślimaków. Groźny wirus HVX (porażone rośliny usuwać i palić). Liście usuwać po przymrozkach." },
+  28: { ogrodnik: "Po kwitnieniu przyciąć krótko przekwitłe pędy.", ai: "Pułapka: gatunek obficie się wysiewa — ścinać przekwitłe kłosy zanim nasiona dojrzeją (wiele odmian ozdobnych jest sterylnych, problem mniejszy). Praktycznie bezproblemowa, cenna dla pszczół i motyli; minimalne nawożenie." },
+  29: { ogrodnik: "Specjalnie poszukiwana odmiana; należy do wyższego piętra z tyłu ogrodu, docelowo prawie do wysokości ogrodzenia. Odporna.", ai: "Cięcie nisko wczesną wiosną, gdy miną mrozy, ale przed ruszeniem pędów. Pułapka: nadmiar azotu daje rozlazłą, pokładającą się kępę. Startuje późno wiosną. Co 4–6 lat odmłodzić przez podział." },
+  30: { ai: "Podpory — klucz: duże kwiaty na miękkich pędach pokładają się — załóż podpory pierścieniowe zanim roślina osiągnie pełną wysokość. Szara pleśń: przewiew, usuwanie porażonych części. Mrówki na pąkach nie szkodzą. Uwaga: nie sadzić zbyt głęboko (oczka 3–5 cm pod ziemią) — częsta przyczyna braku kwitnienia." },
+  31: { ai: "Całą kępę ściąć nisko wczesną wiosną. Mrozoodporna; młode przez 2–3 lata zabezpieczać. Pułapka: startuje bardzo późno (źdźbła dopiero w maju) — nie uznawaj za martwą zbyt wcześnie. Bez nadmiaru azotu." },
+  32: { ogrodnik: "Poza automatycznym nawadnianiem — podlewać ręcznie, ostrożnie (lubi wilgoć, ale przy przelaniu wygniwa). Można dosiewać: wzruszyć ziemię, dosypać drobnych nasion. Z czasem sam się rozsiewa, może być prawie chwastem w szczelinach.", ai: "Poduchy mogą zasychać od środka; roślina krótkowieczna — odnawiać i dzielić co 2–4 lata. Jesienią usuwać opadłe liście (gnijąca warstwa powoduje zamieranie). Wąska równowaga wilgoci: gnije na mokro, zasycha przy przesuszeniu." },
+  33: { ogrodnik: "Po przekwitnieniu (kwiaty robią się szare, ok. 2 tygodnie) przyciąć bardzo krótko — ok. 5–6 cm nad ziemią. Wtedy powtórzy kwitnienie i nie rozłamie się na zbyt długich pędach.", ai: "Mocne ścięcie po pierwszym kwitnieniu pobudza powtórne i zapobiega rozłamaniu. Wczesną wiosną ściąć nisko zeszłoroczne pędy. W cieniu pędy wiotczeją. Przy przegęszczeniu mączniak; skromne nawożenie; co 3–4 lata podział." },
+  34: { ai: "Pułapka: zbyt żyzna gleba i nadmiar azotu/wody powodują rozpadanie i pokładanie kęp; w cieniu też się wykłada — pełne słońce, skąpe nawożenie. 'Chelsea chop' (skrócenie o ⅓–½ pod koniec maja) daje zwartą kępę. Suche pędy zostaw na zimę, ściąć wczesną wiosną." },
+  35: { ai: "Pułapka: zbyt żyzna gleba i nadmiar azotu/wody powodują rozpadanie kęp. Pełne słońce, skąpe nawożenie. 'Chelsea chop' (skrócenie o ⅓–½ pod koniec maja) daje zwartą kępę. Suche pędy zostaw na zimę, ściąć wczesną wiosną." },
+  36: { ai: "Tnij lub wyczesuj stare liście nisko późną zimą/wczesną wiosną (rusza bardzo wcześnie) — roślina jest częściowo zimozielona. Źle znosi mokrą, ciężką glebę — może gnić (usuwaj suche liście by nie zalegała wilgoć). W pełni mrozoodporna." },
+  37: { ogrodnik: "Najbardziej wrażliwa na mróz z traw w ogrodzie — w tym roku wiele ostnic przemarzło (zima była wyjątkowo trudna). Można lekko kopczykować podstawę, ale bez przesady — zbyt duże okrycie zwiększa wilgoć i sprzyja chorobom grzybowym.", ai: "Ginie głównie od wygniwania przy zastoinach wody, nie od samego mrozu — potrzebuje suchego, bardzo dobrze zdrenowanego, słonecznego stanowiska. Wiosną wyczesz suche źdźbła. Pułapka: obficie się wysiewa (samosiew). Nie nawozić (azot → pokładanie). Startuje późno wiosną." },
+  38: { ai: "Zima: nie w pełni mrozoodporna. W Poznaniu często traktowana jak jednoroczna; w łagodne zimy i pod okryciem bywa, że przezimuje. Plan awaryjny: obficie się wysiewa — zostaw część przekwitłych kwiatostanów na zimę, wiosną pojawią się samosiewy. Jesienią skróć o ⅔, wiosną przytnij do silnych pędów przy podstawie. Skromne nawożenie." },
+};
+
 const groups = {
   "Drzewa":           { color: "#1565c0", cls: "g-drzewa" },
   "Krzewy":           { color: "#5d4037", cls: "g-krzewy" },
@@ -1652,8 +1780,22 @@ function openModal(plantId, countHere) {
 
   body += `</div>
     <div class="section-title">Uwagi</div>
-    <div class="notes-box">${plant.notes}</div>
-  </div>`;
+    <div class="notes-box">${plant.notes}</div>`;
+
+  const tips = plantTips[plantId];
+  if (tips) {
+    body += `<div class="tips-section">
+      <div class="section-title">Zalecenia pielęgnacyjne</div>`;
+    if (tips.ogrodnik) {
+      body += `<div class="tips-block ogrodnik"><div class="tips-label ogrodnik">Ogrodnik</div>${tips.ogrodnik}</div>`;
+    }
+    if (tips.ai) {
+      body += `<div class="tips-block research"><div class="tips-label research">Research</div>${tips.ai}</div>`;
+    }
+    body += `</div>`;
+  }
+
+  body += `</div>`;
 
   document.getElementById('modal-body').innerHTML = body;
   document.getElementById('modal-overlay').classList.add('open');
@@ -1740,6 +1882,14 @@ function exportPositions() {
 }
 
 // ─── Plant List Panel ─────────────────────────────────────────────────────────
+
+
+function togglePorady() {
+  const panel = document.getElementById('porady-panel');
+  panel.classList.toggle('open');
+  // close plant list if open
+  document.getElementById('plant-list-panel').classList.remove('open');
+}
 
 function toggleList() {
   document.getElementById('plant-list-panel').classList.toggle('open');
