@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plan Ogrodu</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #1a2e1a;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #2d4a2d;
+      color: #c8e6c9;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    header h1 { font-size: 1.1rem; font-weight: 600; }
+    header p { font-size: 0.78rem; opacity: 0.65; margin-top: 2px; }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: none;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.15s;
+    }
+
+    .btn-primary {
+      background: #4caf50;
+      color: white;
+    }
+    .btn-primary:hover { background: #388e3c; }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.12);
+      color: #c8e6c9;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.2); }
+
+    #file-input { display: none; }
+
+    .legend-bar {
+      background: #243824;
+      padding: 6px 16px;
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      align-items: center;
+      flex-shrink: 0;
+      border-bottom: 1px solid #1a2e1a;
+    }
+
+    .legend-label {
+      font-size: 0.7rem;
+      color: #81c784;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-right: 4px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.75rem;
+      color: #a5d6a7;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 10px;
+      transition: background 0.15s;
+    }
+    .legend-item:hover { background: rgba(255,255,255,0.08); }
+    .legend-item.active { background: rgba(255,255,255,0.15); }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .main-area {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+      overflow: auto;
+    }
+
+    .garden-container {
+      position: relative;
+      display: inline-block;
+      user-select: none;
+      width: min(700px, 100%);
+      flex-shrink: 0;
+    }
+
+    #garden-plan {
+      display: block;
+      width: 100%;
+      border-radius: 6px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+
+    .no-image-msg {
+      background: #2d4a2d;
+      width: 560px;
+      max-width: 90vw;
+      height: 780px;
+      max-height: calc(100vh - 140px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #81c784;
+      text-align: center;
+      gap: 16px;
+      border-radius: 8px;
+      border: 2px dashed #3a5c3a;
+    }
+
+    .no-image-msg h2 { font-size: 1.1rem; }
+    .no-image-msg p { font-size: 0.85rem; opacity: 0.8; line-height: 1.6; }
+    .no-image-msg code {
+      background: rgba(0,0,0,0.3);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+
+    .plant-marker {
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8.5px;
+      font-weight: 700;
+      color: white;
+      border: 2px solid rgba(255,255,255,0.55);
+      transition: transform 0.12s, box-shadow 0.12s, opacity 0.12s;
+      z-index: 10;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+      line-height: 1;
+    }
+
+    .plant-marker:hover {
+      transform: translate(-50%, -50%) scale(1.5);
+      border-color: white;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.5), 0 2px 12px rgba(0,0,0,0.4);
+      z-index: 30;
+    }
+
+    .plant-marker.highlighted {
+      transform: translate(-50%, -50%) scale(1.45);
+      border-color: white;
+      box-shadow: 0 0 0 3px white, 0 0 16px rgba(255,255,255,0.6);
+      z-index: 25;
+    }
+
+    .plant-marker.dimmed {
+      opacity: 0.18;
+    }
+
+    /* Group colors */
+    .g-drzewa  { background: #1565c0; }
+    .g-krzewy  { background: #5d4037; }
+    .g-pnace   { background: #6a1b9a; }
+    .g-roze    { background: #c62828; }
+    .g-trawy   { background: #2e7d32; }
+    .g-byliny  { background: #e65100; }
+
+    /* Tooltip */
+    .tooltip {
+      position: fixed;
+      background: rgba(20, 20, 20, 0.9);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 11px;
+      pointer-events: none;
+      z-index: 200;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      backdrop-filter: blur(4px);
+      display: none;
+      max-width: 240px;
+      white-space: normal;
+      line-height: 1.35;
+    }
+
+    .tooltip b { font-size: 12px; }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(2px);
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: white;
+      border-radius: 14px;
+      max-width: 500px;
+      width: 93%;
+      max-height: 88vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.45);
+      position: relative;
+      animation: slideUp 0.2s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(24px); opacity: 0; }
+      to   { transform: translateY(0);   opacity: 1; }
+    }
+
+    .modal-header {
+      padding: 22px 22px 16px;
+      border-radius: 14px 14px 0 0;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: rgba(255,255,255,0.22);
+      border: none;
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.35); }
+
+    .modal-tag {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.7);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .modal-name {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 2px;
+    }
+
+    .modal-latin {
+      font-style: italic;
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .modal-body { padding: 0; }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .badge {
+      background: #f2f2f2;
+      color: #555;
+      padding: 4px 11px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 500;
+    }
+
+    .badge.accent {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .section-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #999;
+      font-weight: 600;
+      margin-bottom: 8px;
+      margin-top: 16px;
+    }
+
+    .care-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .care-item {
+      background: #f7f7f7;
+      border-radius: 8px;
+      padding: 9px 12px;
+    }
+
+    .care-icon { font-size: 14px; margin-bottom: 2px; }
+
+    .care-label {
+      font-size: 0.68rem;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .care-value {
+      font-size: 0.85rem;
+      color: #333;
+      font-weight: 500;
+      margin-top: 1px;
+    }
+
+    .notes-box {
+      background: #f0f7f0;
+      border-left: 3px solid #4caf50;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 14px;
+      font-size: 0.84rem;
+      color: #4a4a4a;
+      line-height: 1.55;
+      margin-top: 8px;
+    }
+
+    /* Edit mode */
+    body.edit-mode .plant-marker {
+      cursor: move;
+      border-style: dashed;
+    }
+    body.edit-mode .plant-marker:hover {
+      border-color: yellow;
+      box-shadow: 0 0 0 2px yellow;
+    }
+
+    .edit-hint {
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.75);
+      color: #ffd54f;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      z-index: 300;
+      display: none;
+      backdrop-filter: blur(4px);
+    }
+    body.edit-mode .edit-hint { display: block; }
+
+    #file-input { display: none; }
+
+    /* Plant list panel */
+    .plant-list-panel {
+      display: none;
+      position: fixed;
+      right: 16px;
+      top: 100px;
+      width: 280px;
+      max-height: calc(100vh - 116px);
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      z-index: 50;
+      overflow-y: auto;
+    }
+    .plant-list-panel.open { display: block; }
+
+    .panel-header {
+      padding: 12px 16px;
+      background: #2e7d32;
+      color: white;
+      border-radius: 12px 12px 0 0;
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+    }
+
+    .panel-close {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .plant-list-item {
+      padding: 8px 16px;
+      border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background 0.12s;
+    }
+    .plant-list-item:hover { background: #f5f5f5; }
+    .plant-list-item:last-child { border-bottom: none; }
+
+    .list-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .list-thumb {
+      width: 38px;
+      height: 38px;
+      border-radius: 6px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: #eee;
+    }
+
+    .modal-photo {
+      width: 100%;
+      max-height: 220px;
+      object-fit: cover;
+      display: block;
+      border-radius: 0;
+    }
+
+    .list-num {
+      font-size: 0.7rem;
+      color: #bbb;
+      font-weight: 700;
+      width: 18px;
+      flex-shrink: 0;
+    }
+
+    .list-text { flex: 1; }
+    .list-polish { font-size: 0.82rem; color: #333; font-weight: 500; }
+    .list-latin { font-size: 0.72rem; color: #888; font-style: italic; }
+    .list-qty { font-size: 0.72rem; color: #aaa; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Plan Ogrodu</h1>
+    <p>Projekt: MGR INŻ. ARCH. AGNIESZKA WACHOWIAK · 38 gatunków roślin</p>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-secondary" onclick="toggleList()">Lista roślin</button>
+    <button class="btn btn-secondary" id="edit-btn" onclick="toggleEdit()" style="display:none">Tryb edycji pozycji</button>
+  </div>
+</header>
+
+<div class="legend-bar" id="legend-bar">
+  <span class="legend-label">Grupy:</span>
+</div>
+
+<div class="main-area">
+  <div class="garden-container" id="garden-container">
+    <img id="garden-plan" src="garden_project_clean.png" alt="Plan ogrodu" style="display:none"
+         onload="onImageLoad()" onerror="showNoImage()">
+    <div id="no-image" class="no-image-msg" style="display:none">
+      <div style="font-size:2.5rem">🌿</div>
+      <h2>Brak pliku mapy</h2>
+      <p>Dodaj plik <code>garden_project_clean.png</code><br>do folderu z tym plikiem HTML i odświeżyć stronę.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal / Popup -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header" id="modal-header">
+      <button class="modal-close" onclick="closeModal()">×</button>
+      <div class="modal-tag" id="modal-tag"></div>
+      <div class="modal-name" id="modal-name"></div>
+      <div class="modal-latin" id="modal-latin"></div>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip"></div>
+
+<!-- Plant list panel -->
+<div class="plant-list-panel" id="plant-list-panel">
+  <div class="panel-header">
+    <span>Lista roślin (38)</span>
+    <button class="panel-close" onclick="toggleList()">×</button>
+  </div>
+  <div id="plant-list-items"></div>
+</div>
+
+<!-- Edit mode hint -->
+<div class="edit-hint">Tryb edycji: przeciągnij znaczniki na właściwe pozycje · Kliknij "Tryb edycji" ponownie aby zakończyć · <a href="#" onclick="exportPositions();return false" style="color:#ffd54f">Eksportuj pozycje</a></div>
+
+<script>
+// ─── Plant Data ───────────────────────────────────────────────────────────────
+
+const plants = {
+  1: {
+    polishName: "Cis pospolity",
+    cultivar: "Kazimierz Nowak",
+    latinName: "Taxus baccata 'Kazimierz Nowak'",
+    group: "Drzewa",
+    totalQty: 5,
+    size: "wys. do 30 cm",
+    care: {
+      "☀️ Nasłonecznienie": "słońce / półcień / cień",
+      "💧 Podlewanie": "umiarkowane",
+      "🌱 Gleba": "żyzna, przepuszczalna",
+      "✂️ Przycinanie": "wiosna i lato",
+      "❄️ Mrozoodporność": "strefa 5 (do -29°C)",
+      "🌸 Kwitnienie": "—",
+    },
+    notes: "Bardzo wolno rosnąca, karłowata odmiana cisa. Zimozielona. Idealna do małych ogrodów i kompozycji z wieloletnimi roślinami. UWAGA: wszystkie części rośliny są trujące."
+  },
+  2: {
+    polishName: "Surmia bignoniowa",
+    cultivar: "Nana",
+    latinName: "Catalpa bignonioides 'Nana'",
+    group: "Drzewa",
+    totalQty: 1,
+    size: "pa 180–220 cm",
+    care: {
+      "☀️ Nasłonecznienie": "słońce / lekki półcień",
+      "💧 Podlewanie": "umiarkowane–obfite",
+      "🌱 Gleba": "żyzna, wilgotna, próchnicza",
+      "✂️ Przycinanie": "wiosna (cięcie na pień)",
+      "❄️ Mrozoodporność": "strefa 5 (do -29°C)",
+      "🌸 Kwitnienie": "nie kwitnie (cięta na pień)",
+    },
+    notes: "Szczepiona na pniu jako 'parasol'. Silnie cięta co roku na pień — wytwarza wyjątkowo duże, dekoracyjne liście. Bez cięcia na pień kwitnie białymi kwiatami."
+  },
+  3: {
+    polishName: "Ambrowiec amerykański",
+    cultivar: "'Gum Ball'",
+    latinName: "Liquidambar styraciflua 'Gum Ball'",
+    group: "Drzewa",
+    totalQty: 1,
+    size: "forma kulista, do 2–3 m",
+    care: {
+      "☀️ Nasłonecznienie": "pełne słońce",
+      "💧 Podlewanie": "regularne, nie lubi suszy",
+      "🌱 Gleba": "kwaśna, wilgotna, przepuszczalna",
+      "✂️ Przycinanie": "minimalne",
+      "❄️ Mrozoodporność": "strefa 5 (do -29°C)",
+      "🌸 Kwitnienie": "—",
+    },
+    notes: "Spektakularne przebarwienie jesienne: od żółtego przez pomarańczowy do karmazynowego. Kulista, kompaktowa odmiana — tworzy regularną kulę, idealna jako akcent kompozycji. Nie toleruje gleb wapiennych."
+  },
+  4: {
+    polishName: "Wiśnia piłkowana",
+    cultivar: "Kanzan",
+    latinName: "Prunus serrulata 'Kanzan'",
+    group: "Drzewa",
+    totalQty: 1,
+    size: "pa 180–220 cm",
+    care: {
+      "☀️ Nasłonecznienie": "pełne słońce",
+      "💧 Podlewanie": "umiarkowane",
+      "🌱 Gleba": "żyzna, przepuszczalna",
+      "✂️ Przycinanie": "po kwitnieniu",
+      "❄️ Mrozoodporność": "strefa 5 (do -29°C)",
+      "🌸 Kwitnienie": "kwiecień–maj",
+    },
+    notes: "Klasyczna japońska wiśnia ozdobna. Efektowne, ciemnopurpurowe pełne kwiaty wiosną. Brązowoczerwone liście przy rozwijaniu. Forma szczepiona na pniu."
+  },
+  5: {
+    polishName: "Berberys Thunberga",
+    cultivar: "Admiration",
+    latinName: "Berberis thunbergii 'Admiration'",
+    group: "Krzewy",
+    totalQty: 3,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "słońce / półcień",
+      "💧 Podlewanie": "umiarkowane, toleruje suszę",
+      "🌱 Gleba": "każda przepuszczalna",
+      "✂️ Przycinanie": "po kwitnieniu lub wiosna",
+      "❄️ Mrozoodporność": "strefa 4 (do -35°C)",
+      "🌸 Kwitnienie": "kwiecień–maj",
+    },
+    notes: "Miniaturowy krzew z pomarańczowożółtymi obwódkami na ciemnoczerwonych liściach. Silne kolce. Czerwone owoce jesienią. Idealna do niskich rabat."
+  },
+  6: {
+    polishName: "Berberys Thunberga",
+    cultivar: "Kobold",
+    latinName: "Berberis thunbergii 'Kobold'",
+    group: "Krzewy",
+    totalQty: 3,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "słońce / półcień",
+      "💧 Podlewanie": "umiarkowane, toleruje suszę",
+      "🌱 Gleba": "każda przepuszczalna",
+      "✂️ Przycinanie": "wiosna",
+      "❄️ Mrozoodporność": "strefa 4 (do -35°C)",
+      "🌸 Kwitnienie": "kwiecień–maj",
+    },
+    notes: "Karłowy berberys o jasnozielonych liściach, tworzy regularną kulę bez przycinania. Żółte kwiaty, czerwone owoce jesienią. Ma kolce."
+  },
+  7: {
+    polishName: "Dereń biały",
+    cultivar: "Elegantissima",
+    latinName: "Cornus alba 'Elegantissima'",
+    group: "Krzewy",
+    totalQty: 1,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "słońce / półcień",
+      "💧 Podlewanie": "obfite, lubi wilgoć",
+      "🌱 Gleba": "żyzna, wilgotna",
+      "✂️ Przycinanie": "wczesna wiosna (co 2–3 lata)",
+      "❄️ Mrozoodporność": "strefa 3 (do -40°C)",
+      "🌸 Kwitnienie": "maj–czerwiec",
+    },
+    notes: "Szaro-zielone liście z białą obwódką. Pędy jaskrawoczerwone zimą — szczególnie piękne po cięciu. Cięcie odmładza krzew i wzmacnia kolor pędów."
+  },
+  8: {
+    polishName: "Trzmielina oskrzydlona",
+    cultivar: "—",
+    latinName: "Euonymus alatus",
+    group: "Krzewy",
+    totalQty: 1,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "słońce / półcień",
+      "💧 Podlewanie": "umiarkowane",
+      "🌱 Gleba": "każda przepuszczalna",
+      "✂️ Przycinanie": "wiosna (opcjonalne)",
+      "❄️ Mrozoodporność": "strefa 4 (do -35°C)",
+      "🌸 Kwitnienie": "maj",
+    },
+    notes: "Zjawiskowe karmazynowe przebarwienie jesienne. Charakterystyczne 'skrzydełka' na pędach. Wolno rosnąca i bardzo trwała. Doskonały kontrast z roślinami zimozielonymi."
+  },
+  9: {
+    polishName: "Trzmielina oskrzydlona",
+    cultivar: "Green Spire",
+    latinName: "Euonymus alatus 'Green Spire'",
+    group: "Rośliny pnące",
+    totalQty: 5,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "słońce / półcień",
+      "💧 Podlewanie": "umiarkowane",
+      "🌱 Gleba": "każda przepuszczalna",
+      "✂️ Przycinanie": "wiosna (opcjonalne)",
+      "❄️ Mrozoodporność": "strefa 4 (do -35°C)",
+      "🌸 Kwitnienie": "maj",
+    },
+    notes: "Kolumnowa forma trzmieliny oskrzydlonej. Piękne czerwone przebarwienie jesienne. Pionowy pokrój idealna do żywopłotów i akcentów architektonicznych."
+  },
+  10: {
+    polishName: "Trzmielina Fortune'a",
+    cultivar: "Emerald Gaiety",
+    latinName: "Euonymus fortunei 'Emerald Gaiety'",
+    group: "Rośliny pnące",
+    totalQty: 6,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "słońce / półcień / cień",
+      "💧 Podlewanie": "umiarkowane",
+      "🌱 Gleba": "każda próchnicza",
+      "✂️ Przycinanie": "wiosna",
+      "❄️ Mrozoodporność": "strefa 5 (do -29°C)",
+      "🌸 Kwitnienie": "—",
+    },
+    notes: "Zimozielona trzmielina z białymi obwódkami na liściach. Zimą przebarwia się różowawo. Może piąć się po podporach lub okrywać ziemię. Bardzo wszechstronna."
+  },
+  11: {
+    polishName: "Hortensja bukietowa",
+    cultivar: "Bobo",
+    latinName: "Hydrangea paniculata 'Bobo'",
+    group: "Krzewy",
+    totalQty: 3,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "słońce / lekki półcień",
+      "💧 Podlewanie": "regularne, lubi wilgoć",
+      "🌱 Gleba": "żyzna, próchnicza",
+      "✂️ Przycinanie": "wczesna wiosna",
+      "❄️ Mrozoodporność": "strefa 4 (do -35°C)",
+      "🌸 Kwitnienie": "lipiec–październik",
+    },
+    notes: "Karłowa hortensja (ok. 70 cm). Białe kwiatostany stopniowo różowieją jesienią. Kwitnie na pędach bieżącego roku — nie bać się mocnego przycinania wiosną."
+  },
+  12: {
+    polishName: "Hortensja bukietowa",
+    cultivar: "Sundae Fraise",
+    latinName: "Hydrangea paniculata 'Sundae Fraise'",
+    group: "Krzewy",
+    totalQty: 8,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "słońce / lekki półcień",
+      "💧 Podlewanie": "regularne, lubi wilgoć",
+      "🌱 Gleba": "żyzna, próchnicza",
+      "✂️ Przycinanie": "wczesna wiosna",
+      "❄️ Mrozoodporność": "strefa 4 (do -35°C)",
+      "🌸 Kwitnienie": "lipiec–październik",
+    },
+    notes: "Duże kwiatostany — najpierw kremowe, potem intensywnie różowiejące (jak truskawki ze śmietaną). Łatwa w uprawie. Kwitnie na tegorocznych pędach."
+  },
+  13: {
+    polishName: "Lawenda wąskolistna",
+    cultivar: "Blue Star",
+    latinName: "Lavandula angustifolia 'Blue Star'",
+    group: "Krzewy",
+    totalQty: 6,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "pełne słońce",
+      "💧 Podlewanie": "rzadkie, toleruje suszę",
+      "🌱 Gleba": "lekka, przepuszczalna, zasadowa",
+      "✂️ Przycinanie": "po kwitnieniu + wiosna",
+      "❄️ Mrozoodporność": "strefa 5 (do -29°C)",
+      "🌸 Kwitnienie": "czerwiec–sierpień",
+    },
+    notes: "Kompaktowa lawenda o niebiesko-fioletowych kwiatach. Intensywnie aromatyczna. Nie lubi stagnowania wody. Świetna dla pszczół i motyli. Obsypać piaskiem przy nasadzie."
+  },
+  14: {
+    polishName: "Wierzba całolistna",
+    cultivar: "Hakuro-nishiki",
+    latinName: "Salix integra 'Hakuro-nishiki'",
+    group: "Krzewy",
+    totalQty: 3,
+    size: "pa 140–160 cm",
+    care: {
+      "☀️ Nasłonecznienie": "słońce / lekki półcień",
+      "💧 Podlewanie": "obfite, lubi wilgoć",
+      "🌱 Gleba": "żyzna, wilgotna",
+      "✂️ Przycinanie": "silne cięcie wczesną wiosną",
+      "❄️ Mrozoodporność": "strefa 5 (do -29°C)",
+      "🌸 Kwitnienie": "marzec–kwiecień",
+    },
+    notes: "Szczepiona na pniu wierzba o efektownych biało-różowo-zielonych liściach. Nowe przyrosty najpiękniej wybarwione. Silne cięcie wiosną utrzymuje dekoracyjność i kompaktowy pokrój."
+  },
+  15: {
+    polishName: "Winobluszcz trójklapowy",
+    cultivar: "—",
+    latinName: "Parthenocissus tricuspidata",
+    group: "Rośliny pnące",
+    totalQty: 3,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "słońce / półcień / cień",
+      "💧 Podlewanie": "umiarkowane",
+      "🌱 Gleba": "każda",
+      "✂️ Przycinanie": "jesień lub wczesna wiosna",
+      "❄️ Mrozoodporność": "strefa 4 (do -35°C)",
+      "🌸 Kwitnienie": "—",
+    },
+    notes: "Samoczepny pnącz — przytwierdza się do ścian i murów bez podpór. Spektakularne czerwone przebarwienie jesienne. Rośnie bardzo szybko — warto kontrolować zasięg."
+  },
+  16: {
+    polishName: "Róża",
+    cultivar: "The Fairy",
+    latinName: "Rosa 'The Fairy'",
+    group: "Róże",
+    totalQty: 6,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "pełne słońce",
+      "💧 Podlewanie": "regularne, przy nasadzie",
+      "🌱 Gleba": "żyzna, przepuszczalna",
+      "✂️ Przycinanie": "wczesna wiosna (silne)",
+      "❄️ Mrozoodporność": "strefa 4 (do -35°C)",
+      "🌸 Kwitnienie": "czerwiec–październik",
+    },
+    notes: "Wielokwiatowa, kompaktowa róża okrywowa. Różowe, drobne kwiatki w dużych gronach. Powtarza kwitnienie przez całe lato. Odporna na choroby. Obsypywać przekompostowaną korą."
+  },
+  17: {
+    polishName: "Róża",
+    cultivar: "White Fairy",
+    latinName: "Rosa 'White Fairy'",
+    group: "Róże",
+    totalQty: 5,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "pełne słońce",
+      "💧 Podlewanie": "regularne, przy nasadzie",
+      "🌱 Gleba": "żyzna, przepuszczalna",
+      "✂️ Przycinanie": "wczesna wiosna (silne)",
+      "❄️ Mrozoodporność": "strefa 4 (do -35°C)",
+      "🌸 Kwitnienie": "czerwiec–październik",
+    },
+    notes: "Biała wersja róży 'The Fairy'. Miniaturowe, białe kwiaty w obfitych gronach przez całe lato. Odporna i łatwa w uprawie. Idealna do tworzenia granic rabat."
+  },
+  18: {
+    polishName: "Bergenia",
+    cultivar: "Admiral",
+    latinName: "Bergenia 'Admiral'",
+    group: "Byliny kwitnące",
+    totalQty: 11,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "półcień / cień",
+      "💧 Podlewanie": "umiarkowane",
+      "🌱 Gleba": "każda próchnicza",
+      "✂️ Przycinanie": "usuwanie starych liści wiosną",
+      "❄️ Mrozoodporność": "strefa 4 (do -35°C)",
+      "🌸 Kwitnienie": "marzec–kwiecień",
+    },
+    notes: "Zimozielona bylina o dużych, skórzastych liściach. Różowokarminowe kwiaty wczesną wiosną. Liście przebarwiają się bordowo-czerwono jesienią. Odporna na cień i suszę."
+  },
+  19: {
+    polishName: "Brunnera wielkolistna",
+    cultivar: "Variegata",
+    latinName: "Brunnera macrophylla 'Variegata'",
+    group: "Byliny kwitnące",
+    totalQty: 9,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "półcień / cień",
+      "💧 Podlewanie": "regularne, nie lubi przesuszenia",
+      "🌱 Gleba": "żyzna, wilgotna, próchnicza",
+      "✂️ Przycinanie": "usuwanie przekwitłych kwiatów",
+      "❄️ Mrozoodporność": "strefa 3 (do -40°C)",
+      "🌸 Kwitnienie": "kwiecień–maj",
+    },
+    notes: "Srebrzysto-zielone liście (mocno wybarwione u tej odmiany). Błękitne kwiatki jak niezapominajki. Idealna do zacienionych rabat. Skutecznie chroni przed chwastami."
+  },
+  20: {
+    polishName: "Trzcinnik ostrokwiatowy",
+    cultivar: "Karl Foerster",
+    latinName: "Calamagrostis x acutiflora 'Karl Foerster'",
+    group: "Trawy ozdobne",
+    totalQty: 3,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "pełne słońce / lekki półcień",
+      "💧 Podlewanie": "umiarkowane",
+      "🌱 Gleba": "każda, nawet gliniasta",
+      "✂️ Przycinanie": "wczesna wiosna (do 10 cm)",
+      "❄️ Mrozoodporność": "strefa 4 (do -35°C)",
+      "🌸 Kwitnienie": "czerwiec–lipiec",
+    },
+    notes: "Pionowa, elegancka trawa ozdobna (do 1,8 m). Zimą piękne brązowe pióropusze. Nie rozsadza się agresywnie. Jedna z najpopularniejszych i najbardziej niezawodnych traw ozdobnych."
+  },
+  21: {
+    polishName: "Jeżówka purpurowa",
+    cultivar: "Coral Reef",
+    latinName: "Echinacea purpurea 'Coral Reef'",
+    group: "Byliny kwitnące",
+    totalQty: 5,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "pełne słońce",
+      "💧 Podlewanie": "umiarkowane, toleruje suszę",
+      "🌱 Gleba": "przepuszczalna, niezbyt żyzna",
+      "✂️ Przycinanie": "wiosna (stare łodygi)",
+      "❄️ Mrozoodporność": "strefa 3 (do -40°C)",
+      "🌸 Kwitnienie": "lipiec–wrzesień",
+    },
+    notes: "Jeżówka o kwiatach w odcieniach koralowo-łososiowych. Przyciąga motyle i pszczoły. Suche kwiatostany dekoracyjne przez zimę. Wyjątkowo łatwa i długowieczna."
+  },
+  22: {
+    polishName: "Jeżówka purpurowa",
+    cultivar: "White Swan",
+    latinName: "Echinacea purpurea 'White Swan'",
+    group: "Byliny kwitnące",
+    totalQty: 5,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "pełne słońce",
+      "💧 Podlewanie": "umiarkowane, toleruje suszę",
+      "🌱 Gleba": "przepuszczalna, niezbyt żyzna",
+      "✂️ Przycinanie": "wiosna (stare łodygi)",
+      "❄️ Mrozoodporność": "strefa 3 (do -40°C)",
+      "🌸 Kwitnienie": "lipiec–wrzesień",
+    },
+    notes: "Biała jeżówka z pomarańczowym kolczastym środkiem. Elegancka i delikatna. Doskonała do cięcia. Suche kwiatostany zdobią ogród przez zimę."
+  },
+  23: {
+    polishName: "Hakonechloa smukła",
+    cultivar: "—",
+    latinName: "Hakonechloa macra",
+    group: "Trawy ozdobne",
+    totalQty: 6,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "półcień / cień",
+      "💧 Podlewanie": "regularne, lubi wilgoć",
+      "🌱 Gleba": "żyzna, próchnicza, przepuszczalna",
+      "✂️ Przycinanie": "wczesna wiosna",
+      "❄️ Mrozoodporność": "strefa 5 (do -29°C)",
+      "🌸 Kwitnienie": "sierpień–październik",
+    },
+    notes: "Japońska trawa cieniowa o kaskadowo opadających, złocisto-zielonych źdźbłach. Piękne jesienne przebarwienie na pomarańczowo-brązowo. Idealna pod drzewami i w cieniu."
+  },
+  24: {
+    polishName: "Ciemiernik biały",
+    cultivar: "—",
+    latinName: "Helleborus niger",
+    group: "Byliny kwitnące",
+    totalQty: 5,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "cień / półcień",
+      "💧 Podlewanie": "umiarkowane",
+      "🌱 Gleba": "żyzna, próchnicza, zasadowa/obojętna",
+      "✂️ Przycinanie": "stare liście usunąć przed zimą",
+      "❄️ Mrozoodporność": "strefa 4 (do -35°C)",
+      "🌸 Kwitnienie": "styczeń–marzec",
+    },
+    notes: "Kwitnie w zimie — białe kwiaty potrafią przebijać się przez śnieg! Zimozielony. Trujący. Wolno się rozrasta, ale jest bardzo długowieczny. Nie lubi przesadzania."
+  },
+  25: {
+    polishName: "Ciemiernik wschodni",
+    cultivar: "—",
+    latinName: "Helleborus orientalis",
+    group: "Byliny kwitnące",
+    totalQty: 8,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "cień / półcień",
+      "💧 Podlewanie": "umiarkowane",
+      "🌱 Gleba": "żyzna, próchnicza, lekko zasadowa",
+      "✂️ Przycinanie": "usuwanie starych liści zimą",
+      "❄️ Mrozoodporność": "strefa 4 (do -35°C)",
+      "🌸 Kwitnienie": "luty–kwiecień",
+    },
+    notes: "Bogactwo kolorów: biały, różowy, fioletowy, ciemnoczerwony. Zimozielony. Rozsadza się samoczynnie. Kwiaty zwisające, po kwitnieniu podnoszą się. Trujący."
+  },
+  26: {
+    polishName: "Liliowiec",
+    cultivar: "Stella de Oro",
+    latinName: "Hemerocallis 'Stella de Oro'",
+    group: "Byliny kwitnące",
+    totalQty: 17,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "pełne słońce / lekki półcień",
+      "💧 Podlewanie": "umiarkowane",
+      "🌱 Gleba": "żyzna, przepuszczalna",
+      "✂️ Przycinanie": "usuwanie przekwitłych pędów; cięcie jesienią",
+      "❄️ Mrozoodporność": "strefa 3 (do -40°C)",
+      "🌸 Kwitnienie": "czerwiec–wrzesień",
+    },
+    notes: "Miniaturowy liliowiec o złotożółtych kwiatach. Powtarza kwitnienie przez całe lato. Bardzo niezawodny i odporny. Naturalizuje się i tworzy gęste, dekoracyjne kępy."
+  },
+  27: {
+    polishName: "Funkia",
+    cultivar: "Patriot",
+    latinName: "Hosta 'Patriot'",
+    group: "Byliny kwitnące",
+    totalQty: 8,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "cień / półcień",
+      "💧 Podlewanie": "regularne, lubi wilgoć",
+      "🌱 Gleba": "żyzna, próchnicza, wilgotna",
+      "✂️ Przycinanie": "usuwanie liści jesienią",
+      "❄️ Mrozoodporność": "strefa 3 (do -40°C)",
+      "🌸 Kwitnienie": "lipiec–sierpień",
+    },
+    notes: "Ciemnozielone liście z szeroką, białą obwódką. Lawendowe kwiaty latem. Jedna z najpopularniejszych funkii. UWAGA: ślimaki to ich największy wróg — stosować pułapki."
+  },
+  28: {
+    polishName: "Krwawnica pospolita",
+    cultivar: "—",
+    latinName: "Lythrum salicaria",
+    group: "Byliny kwitnące",
+    totalQty: 5,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "pełne słońce",
+      "💧 Podlewanie": "obfite, lubi wilgotne gleby",
+      "🌱 Gleba": "wilgotna, gliniasta lub próchnicza",
+      "✂️ Przycinanie": "jesień lub wczesna wiosna",
+      "❄️ Mrozoodporność": "strefa 3 (do -40°C)",
+      "🌸 Kwitnienie": "czerwiec–sierpień",
+    },
+    notes: "Różowopurpurowe kłosy kwiatowe (do 1,5 m). Preferuje wilgotne stanowiska i może rosnąć nad wodą. Bardzo atrakcyjna dla motyli, pszczół i trzmieli."
+  },
+  29: {
+    polishName: "Miskant chiński",
+    cultivar: "Flamingo",
+    latinName: "Miscanthus sinensis 'Flamingo'",
+    group: "Trawy ozdobne",
+    totalQty: 6,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "pełne słońce",
+      "💧 Podlewanie": "umiarkowane, toleruje suszę",
+      "🌱 Gleba": "każda przepuszczalna",
+      "✂️ Przycinanie": "wczesna wiosna (do ok. 20 cm)",
+      "❄️ Mrozoodporność": "strefa 5 (do -29°C)",
+      "🌸 Kwitnienie": "sierpień–październik",
+    },
+    notes: "Duża trawa ozdobna (1,5–2 m) z różowawymi, pierzastymi kwiatostanami. Zimą dekoracyjne, srebrzyste pióropusze. Nie rozsadza się agresywnie. Jeden z piękniejszych miskantów."
+  },
+  30: {
+    polishName: "Piwonia",
+    cultivar: "Barbara",
+    latinName: "Paeonia 'Barbara'",
+    group: "Byliny kwitnące",
+    totalQty: 3,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "pełne słońce / lekki półcień",
+      "💧 Podlewanie": "umiarkowane",
+      "🌱 Gleba": "żyzna, głęboka, przepuszczalna",
+      "✂️ Przycinanie": "jesień (do ziemi)",
+      "❄️ Mrozoodporność": "strefa 3 (do -40°C)",
+      "🌸 Kwitnienie": "maj–czerwiec",
+    },
+    notes: "Pełne, intensywnie różowe kwiaty o silnym zapachu. Sadzić płytko — oczka zaledwie 2–3 cm pod ziemią. Długowieczna — może rosnąć w jednym miejscu przez dziesiątki lat."
+  },
+  31: {
+    polishName: "Rozplenica japońska",
+    cultivar: "Hameln",
+    latinName: "Pennisetum alopecuroides 'Hameln'",
+    group: "Trawy ozdobne",
+    totalQty: 3,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "pełne słońce",
+      "💧 Podlewanie": "umiarkowane",
+      "🌱 Gleba": "przepuszczalna, niezbyt żyzna",
+      "✂️ Przycinanie": "wczesna wiosna",
+      "❄️ Mrozoodporność": "strefa 5 (do -29°C)",
+      "🌸 Kwitnienie": "lipiec–październik",
+    },
+    notes: "Kompaktowa trawa z puszystymi, 'lisimi ogonkami' kwiatostanów. Złotobrązowe przebarwienie jesienią. Nie rozsadza się agresywnie. Zimą zostawić nieprzyciętą — piękna pod śniegiem."
+  },
+  32: {
+    polishName: "Karmnik ościsty",
+    cultivar: "—",
+    latinName: "Sagina subulata",
+    group: "Byliny kwitnące",
+    totalQty: 75,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "słońce / półcień",
+      "💧 Podlewanie": "regularne, nie lubi przesuszenia",
+      "🌱 Gleba": "przepuszczalna, piaszczysto-próchnicza",
+      "✂️ Przycinanie": "—",
+      "❄️ Mrozoodporność": "strefa 4 (do -35°C)",
+      "🌸 Kwitnienie": "maj–lipiec",
+    },
+    notes: "Mszopodobna, niska roślina okrywowa tworząca 'aksamitny' zielony dywan. Idealna do szczelin między kamieniami, między płytami nawierzchni. Drobne białe kwiatki wiosną."
+  },
+  33: {
+    polishName: "Szałwia omszona",
+    cultivar: "Blauhuegel",
+    latinName: "Salvia nemorosa 'Blauhuegel'",
+    group: "Byliny kwitnące",
+    totalQty: 11,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "pełne słońce",
+      "💧 Podlewanie": "umiarkowane, toleruje suszę",
+      "🌱 Gleba": "przepuszczalna, niezbyt żyzna",
+      "✂️ Przycinanie": "po kwitnieniu (pobudza powtórne kwitnienie)",
+      "❄️ Mrozoodporność": "strefa 4 (do -35°C)",
+      "🌸 Kwitnienie": "maj–wrzesień",
+    },
+    notes: "Gęste kłosy niebieskofioletowych kwiatów. Aromatyczne liście. Powtarza kwitnienie po przycięciu. Magnes dla pszczół, motyli i trzmieli. Bardzo odporna na suszę i mróz."
+  },
+  34: {
+    polishName: "Rozchodnik okazały",
+    cultivar: "Brilliant",
+    latinName: "Sedum spectabile 'Brilliant'",
+    group: "Byliny kwitnące",
+    totalQty: 6,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "pełne słońce",
+      "💧 Podlewanie": "rzadkie, toleruje suszę",
+      "🌱 Gleba": "przepuszczalna, niezbyt żyzna",
+      "✂️ Przycinanie": "wczesna wiosna",
+      "❄️ Mrozoodporność": "strefa 4 (do -35°C)",
+      "🌸 Kwitnienie": "sierpień–październik",
+    },
+    notes: "Soczyste liście i różowe, płaskie kwiatostany przyciągające motyle jesienią. Stare kwiatostany dekoracyjne przez zimę — nie przycinać aż do wiosny. Nie lubi podmokłych miejsc."
+  },
+  35: {
+    polishName: "Rozchodnik okazały",
+    cultivar: "Carmen",
+    latinName: "Sedum spectabile 'Carmen'",
+    group: "Byliny kwitnące",
+    totalQty: 8,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "pełne słońce",
+      "💧 Podlewanie": "rzadkie, toleruje suszę",
+      "🌱 Gleba": "przepuszczalna, niezbyt żyzna",
+      "✂️ Przycinanie": "wczesna wiosna",
+      "❄️ Mrozoodporność": "strefa 4 (do -35°C)",
+      "🌸 Kwitnienie": "sierpień–październik",
+    },
+    notes: "Intensywnie ciemnoróżowe kwiatostany, bardziej wybarwione niż 'Brilliant'. Gruboszowate, soczyste liście. Jesienne kwitnienie wpisuje się idealnie w sezon 'naturalnych ogrodów'."
+  },
+  36: {
+    polishName: "Sesleria jesienna",
+    cultivar: "—",
+    latinName: "Sesleria autumnalis",
+    group: "Trawy ozdobne",
+    totalQty: 6,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "słońce / półcień",
+      "💧 Podlewanie": "umiarkowane, toleruje suszę",
+      "🌱 Gleba": "każda, w tym zasadowa",
+      "✂️ Przycinanie": "wiosna (ostrzyżenie)",
+      "❄️ Mrozoodporność": "strefa 4 (do -35°C)",
+      "🌸 Kwitnienie": "sierpień–październik",
+    },
+    notes: "Zwarta trawa tworząca zielono-złote kępy. Wyjątkowo odporna i mało wymagająca. Doskonała do trudnych stanowisk (gleby zasadowe, suche miejsca). Zimozielona."
+  },
+  37: {
+    polishName: "Ostnica cieniutka",
+    cultivar: "Ponytails",
+    latinName: "Stipa tenuissima 'Ponytails'",
+    group: "Trawy ozdobne",
+    totalQty: 6,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "pełne słońce",
+      "💧 Podlewanie": "rzadkie, znakomicie toleruje suszę",
+      "🌱 Gleba": "lekka, piaszczysta, przepuszczalna",
+      "✂️ Przycinanie": "wczesna wiosna (ostrożnie)",
+      "❄️ Mrozoodporność": "strefa 7 (do -18°C) — może nie zimować",
+      "🌸 Kwitnienie": "czerwiec–sierpień",
+    },
+    notes: "Najdelikatniejsza trawa ozdobna — jedwabiste, delikatne źdźbła kołyszące się na wietrze. W Polsce może nie przetrwać mroźnej zimy — warto okryć lub traktować jako jednoroczna."
+  },
+  38: {
+    polishName: "Werbena patagońska",
+    cultivar: "—",
+    latinName: "Verbena bonariensis",
+    group: "Byliny kwitnące",
+    totalQty: 5,
+    size: "—",
+    care: {
+      "☀️ Nasłonecznienie": "pełne słońce",
+      "💧 Podlewanie": "umiarkowane, toleruje suszę",
+      "🌱 Gleba": "każda przepuszczalna",
+      "✂️ Przycinanie": "wiosna",
+      "❄️ Mrozoodporność": "strefa 7 (do -18°C) — może nie zimować",
+      "🌸 Kwitnienie": "lipiec–październik",
+    },
+    notes: "Smukłe łodygi (do 1,5 m) z drobnymi, intensywnie fioletowymi kwiatostanami. Roślina 'przezroczysta' — można sadzić na pierwszym planie. Chętnie odsiewa się sama. Może nie zimować w Polsce."
+  }
+};
+
+// ─── Group Metadata ───────────────────────────────────────────────────────────
+
+const groups = {
+  "Drzewa":           { color: "#1565c0", cls: "g-drzewa" },
+  "Krzewy":           { color: "#5d4037", cls: "g-krzewy" },
+  "Rośliny pnące":    { color: "#6a1b9a", cls: "g-pnace" },
+  "Róże":             { color: "#c62828", cls: "g-roze" },
+  "Trawy ozdobne":    { color: "#2e7d32", cls: "g-trawy" },
+  "Byliny kwitnące":  { color: "#e65100", cls: "g-byliny" },
+};
+
+// ─── Marker Positions (x%, y% of image) ──────────────────────────────────────
+// Mapped from garden_project_map — use Edit Mode (button top-right) to fine-tune
+
+let markers = [
+  { plantId:  4, count:  1, x:  14.8, y:   6.9 },
+  { plantId:  2, count:  1, x:  86.0, y:  74.5 },
+  { plantId:  3, count:  1, x:  87.2, y:   6.0 },
+  { plantId:  1, count:  1, x:  18.3, y:  31.7 },
+  { plantId:  1, count:  1, x:  18.7, y:  33.4 },
+  { plantId:  1, count:  1, x:  19.1, y:  35.1 },
+  { plantId:  1, count:  1, x:  19.8, y:  36.8 },
+  { plantId:  1, count:  1, x:  20.4, y:  38.4 },
+  { plantId:  8, count:  1, x:  57.0, y:   6.4 },
+  { plantId:  7, count:  1, x:  89.1, y:  39.5 },
+  { plantId: 15, count:  1, x:  24.9, y:   5.7 },
+  { plantId: 15, count:  1, x:  49.1, y:   5.2 },
+  { plantId: 15, count:  1, x:  75.1, y:   4.6 },
+  { plantId: 20, count:  1, x:  31.0, y:   6.0 },
+  { plantId: 20, count:  1, x:  36.0, y:   6.0 },
+  { plantId: 20, count:  1, x:  41.0, y:   6.0 },
+  { plantId: 29, count:  1, x:  63.5, y:   6.6 },
+  { plantId: 29, count:  1, x:  67.6, y:   6.5 },
+  { plantId: 29, count:  1, x:  71.6, y:   6.4 },
+  { plantId: 29, count:  1, x:  17.3, y:  25.2 },
+  { plantId: 29, count:  1, x:  17.9, y:  27.4 },
+  { plantId: 29, count:  1, x:  18.4, y:  29.6 },
+  { plantId: 38, count:  1, x:  51.6, y:   7.6 },
+  { plantId: 38, count:  1, x:  47.8, y:   7.7 },
+  { plantId: 38, count:  1, x:  41.5, y:   7.9 },
+  { plantId: 38, count:  1, x:  35.1, y:   8.1 },
+  { plantId: 38, count:  1, x:  28.9, y:   8.2 },
+  { plantId: 36, count:  1, x:  59.1, y:   8.7 },
+  { plantId: 36, count:  1, x:  54.1, y:   8.8 },
+  { plantId: 36, count:  1, x:  49.0, y:   9.0 },
+  { plantId: 36, count:  1, x:  43.6, y:   9.0 },
+  { plantId: 36, count:  1, x:  38.6, y:   9.1 },
+  { plantId: 36, count:  1, x:  33.2, y:   9.4 },
+  { plantId: 34, count:  1, x:  31.5, y:  11.0 },
+  { plantId: 37, count:  1, x:  38.4, y:  10.2 },
+  { plantId: 33, count:  1, x:  43.1, y:  11.3 },
+  { plantId: 37, count:  1, x:  49.0, y:  11.0 },
+  { plantId: 33, count:  1, x:  53.2, y:  10.5 },
+  { plantId: 34, count:  1, x:  61.0, y:  11.0 },
+  { plantId: 24, count:  1, x:  20.9, y:   7.0 },
+  { plantId: 24, count:  1, x:  10.1, y:   6.7 },
+  { plantId: 24, count:  1, x:  19.1, y:   8.3 },
+  { plantId: 24, count:  1, x:  10.7, y:   8.6 },
+  { plantId: 24, count:  1, x:  15.5, y:   9.2 },
+  { plantId: 26, count:  1, x:  77.1, y:   6.3 },
+  { plantId: 26, count:  1, x:  77.9, y:   7.5 },
+  { plantId: 26, count:  1, x:  74.8, y:   7.5 },
+  { plantId: 26, count:  1, x:  73.2, y:   9.5 },
+  { plantId: 26, count:  1, x:  76.2, y:   9.9 },
+  { plantId: 26, count:  1, x:  73.4, y:  10.8 },
+  { plantId: 26, count:  1, x:  28.6, y:   9.8 },
+  { plantId: 26, count:  1, x:  24.9, y:  10.1 },
+  { plantId: 26, count:  1, x:  27.7, y:  11.3 },
+  { plantId: 26, count:  1, x:  17.0, y:  11.5 },
+  { plantId: 26, count:  1, x:  24.0, y:  11.5 },
+  { plantId: 26, count:  1, x:  20.8, y:  11.8 },
+  { plantId: 26, count:  1, x:  13.6, y:  12.2 },
+  { plantId: 26, count:  1, x:  18.0, y:  12.7 },
+  { plantId: 26, count:  1, x:  84.4, y:  11.2 },
+  { plantId: 26, count:  1, x:  86.6, y:  12.0 },
+  { plantId: 26, count:  1, x:  81.9, y:  12.3 },
+  { plantId: 30, count:  1, x:  22.9, y:   8.8 },
+  { plantId: 30, count:  1, x:  13.5, y:  10.8 },
+  { plantId: 30, count:  1, x:  19.6, y:  10.1 },
+  { plantId: 28, count:  1, x:  22.3, y:  13.4 },
+  { plantId: 28, count:  1, x:  18.9, y:  14.2 },
+  { plantId: 28, count:  1, x:  22.3, y:  14.9 },
+  { plantId: 28, count:  1, x:  19.1, y:  15.6 },
+  { plantId: 28, count:  1, x:  22.5, y:  16.2 },
+  { plantId: 10, count:  1, x:  91.8, y:   8.8 },
+  { plantId: 10, count:  1, x:  92.1, y:  11.3 },
+  { plantId: 10, count:  1, x:  92.1, y:  14.0 },
+  { plantId: 10, count:  1, x:  11.9, y:  18.8 },
+  { plantId: 10, count:  1, x:  12.7, y:  21.3 },
+  { plantId: 13, count:  1, x:  15.9, y:  17.7 },
+  { plantId: 13, count:  1, x:  16.1, y:  19.8 },
+  { plantId: 31, count:  1, x:  78.5, y:   9.5 },
+  { plantId: 31, count:  1, x:  79.9, y:  10.7 },
+  { plantId: 31, count:  1, x:  82.7, y:   9.7 },
+  { plantId: 21, count:  1, x:  85.0, y:  13.2 },
+  { plantId: 21, count:  1, x:  82.4, y:  14.4 },
+  { plantId: 21, count:  1, x:  82.6, y:  16.2 },
+  { plantId: 21, count:  1, x:  83.1, y:  18.4 },
+  { plantId: 21, count:  1, x:  83.5, y:  20.8 },
+  { plantId: 21, count:  1, x:  78.3, y:  23.2 },
+  { plantId: 21, count:  1, x:  81.7, y:  23.9 },
+  { plantId: 21, count:  1, x:  78.6, y:  24.8 },
+  { plantId: 12, count:  1, x:  87.5, y:  14.3 },
+  { plantId: 12, count:  1, x:  87.9, y:  17.4 },
+  { plantId: 12, count:  1, x:  87.8, y:  20.6 },
+  { plantId: 12, count:  1, x:  88.2, y:  78.1 },
+  { plantId: 12, count:  1, x:  88.2, y:  80.5 },
+  { plantId: 12, count:  1, x:  88.2, y:  82.5 },
+  { plantId: 12, count:  1, x:  88.2, y:  84.5 },
+  { plantId: 12, count:  1, x:  88.2, y:  86.5 },
+  { plantId: 14, count:  1, x:  87.5, y:  24.3 },
+  { plantId: 14, count:  1, x:  86.9, y:  29.2 },
+  { plantId: 14, count:  1, x:  87.8, y:  34.2 },
+  { plantId: 35, count:  1, x:  91.0, y:  22.0 },
+  { plantId: 35, count:  1, x:  91.0, y:  24.3 },
+  { plantId: 35, count:  1, x:  91.0, y:  26.6 },
+  { plantId: 35, count:  1, x:  91.0, y:  28.9 },
+  { plantId: 35, count:  1, x:  91.0, y:  31.2 },
+  { plantId: 35, count:  1, x:  91.0, y:  33.5 },
+  { plantId: 35, count:  1, x:  91.0, y:  35.8 },
+  { plantId: 35, count:  1, x:  91.0, y:  38.0 },
+  { plantId: 33, count:  1, x:  24.2, y:  23.0 },
+  { plantId: 33, count:  1, x:  24.5, y:  24.2 },
+  { plantId: 33, count:  1, x:  24.9, y:  25.4 },
+  { plantId: 33, count:  1, x:  25.2, y:  26.6 },
+  { plantId: 33, count:  1, x:  25.5, y:  27.7 },
+  { plantId: 33, count:  1, x:  90.8, y:  75.0 },
+  { plantId: 33, count:  1, x:  88.2, y:  75.5 },
+  { plantId: 33, count:  1, x:  90.7, y:  76.2 },
+  { plantId: 33, count:  1, x:  90.6, y:  77.2 },
+  { plantId: 33, count:  1, x:  87.8, y:  76.5 },
+  { plantId: 22, count:  1, x:  20.8, y:  23.3 },
+  { plantId: 22, count:  1, x:  21.5, y:  24.9 },
+  { plantId: 22, count:  1, x:  21.8, y:  26.6 },
+  { plantId: 22, count:  1, x:  21.9, y:  28.3 },
+  { plantId: 22, count:  1, x:  22.5, y:  30.0 },
+  { plantId: 17, count:  1, x:  26.5, y:  29.0 },
+  { plantId: 17, count:  1, x:  29.4, y:  30.1 },
+  { plantId: 17, count:  1, x:  32.1, y:  28.8 },
+  { plantId: 17, count:  1, x:  37.1, y:  28.6 },
+  { plantId: 17, count:  1, x:  35.1, y:  30.0 },
+  { plantId: 11, count:  1, x:  52.5, y:  28.7 },
+  { plantId: 11, count:  1, x:  59.9, y:  28.4 },
+  { plantId: 11, count:  1, x:  67.1, y:  28.2 },
+  { plantId: 25, count:  1, x:  82.4, y:  26.5 },
+  { plantId: 25, count:  1, x:  78.8, y:  26.5 },
+  { plantId: 25, count:  1, x:  80.8, y:  27.9 },
+  { plantId: 25, count:  1, x:  82.6, y:  29.4 },
+  { plantId: 25, count:  1, x:  78.9, y:  29.4 },
+  { plantId: 25, count:  1, x:  80.9, y:  30.9 },
+  { plantId: 25, count:  1, x:  83.7, y:  32.2 },
+  { plantId: 25, count:  1, x:  79.8, y:  32.3 },
+  { plantId: 16, count:  1, x:  80.4, y:  33.9 },
+  { plantId: 16, count:  1, x:  83.4, y:  34.8 },
+  { plantId: 16, count:  1, x:  80.4, y:  35.6 },
+  { plantId: 18, count:  1, x:  22.0, y:  31.7 },
+  { plantId: 19, count:  1, x:  22.5, y:  33.4 },
+  { plantId: 18, count:  1, x:  22.8, y:  35.1 },
+  { plantId: 19, count:  1, x:  23.0, y:  36.8 },
+  { plantId: 18, count:  1, x:  23.2, y:  38.4 },
+  { plantId: 23, count:  1, x:  82.0, y:  38.4 },
+  { plantId: 23, count:  1, x:  82.6, y:  40.0 },
+  { plantId: 23, count:  1, x:  84.6, y:  41.5 },
+  { plantId: 23, count:  1, x:  88.8, y:  43.0 },
+  { plantId: 23, count:  1, x:  89.7, y:  47.6 },
+  { plantId: 23, count:  1, x:  90.3, y:  52.1 },
+  { plantId: 27, count:  1, x:  89.1, y:  45.6 },
+  { plantId: 27, count:  1, x:  89.9, y:  49.9 },
+  { plantId: 27, count:  1, x:  85.7, y:  64.8 },
+  { plantId: 27, count:  1, x:  89.4, y:  65.6 },
+  { plantId: 27, count:  1, x:  86.0, y:  66.8 },
+  { plantId: 27, count:  1, x:  79.6, y:  71.6 },
+  { plantId: 27, count:  1, x:  83.1, y:  72.2 },
+  { plantId: 27, count:  1, x:  80.1, y:  73.3 },
+  { plantId: 18, count:  1, x:  90.0, y:  61.7 },
+  { plantId: 18, count:  1, x:  86.8, y:  62.8 },
+  { plantId: 18, count:  1, x:  89.9, y:  63.6 },
+  { plantId: 18, count:  1, x:  77.5, y:  65.6 },
+  { plantId: 18, count:  1, x:  81.6, y:  66.3 },
+  { plantId: 18, count:  1, x:  78.3, y:  67.1 },
+  { plantId: 18, count:  1, x:  82.2, y:  67.7 },
+  { plantId: 18, count:  1, x:  78.8, y:  68.8 },
+  { plantId: 19, count:  1, x:  81.7, y:  63.2 },
+  { plantId: 19, count:  1, x:  77.5, y:  63.6 },
+  { plantId: 19, count:  1, x:  80.7, y:  64.7 },
+  { plantId: 19, count:  1, x:  82.6, y:  69.3 },
+  { plantId: 19, count:  1, x:  79.2, y:  70.2 },
+  { plantId: 19, count:  1, x:  82.7, y:  70.8 },
+  { plantId:  9, count:  1, x:  89.9, y:  67.2 },
+  { plantId:  9, count:  1, x:  89.9, y:  68.4 },
+  { plantId:  9, count:  1, x:  89.9, y:  69.6 },
+  { plantId:  9, count:  1, x:  89.9, y:  70.8 },
+  { plantId:  9, count:  1, x:  89.9, y:  72.1 },
+  { plantId: 13, count:  1, x:  80.0, y:  74.9 },
+  { plantId: 13, count:  1, x:  79.9, y:  76.4 },
+  { plantId: 13, count:  1, x:  83.2, y:  76.3 },
+  { plantId: 32, count:  1, x:  69.7, y:  41.6 },
+  { plantId: 32, count:  1, x:  69.7, y:  63.4 },
+  { plantId: 32, count:  1, x:  83.0, y:  51.2 },
+  { plantId:  6, count:  1, x:  82.9, y:  92.9 },
+  { plantId:  6, count:  1, x:  87.3, y:  92.9 },
+  { plantId:  6, count:  1, x:  82.6, y:  94.7 },
+  { plantId:  5, count:  1, x:  85.6, y:  96.1 },
+  { plantId:  5, count:  1, x:  90.3, y:  96.3 },
+  { plantId:  5, count:  1, x:  88.3, y:  94.8 },
+  { plantId: 10, count:  1, x:  13.7, y:  23.6 },
+  { plantId: 13, count:  1, x:  16.6, y:  21.7 },
+  { plantId: 34, count:  1, x:  34.0, y:  11.6 },
+  { plantId: 34, count:  1, x:  61.4, y:   9.7 },
+  { plantId: 34, count:  1, x:  59.1, y:  10.3 },
+  { plantId: 34, count:  1, x:  33.7, y:  10.4 },
+  { plantId: 37, count:  1, x:  49.4, y:   9.9 },
+  { plantId: 37, count:  1, x:  36.1, y:  10.8 },
+  { plantId: 37, count:  1, x:  38.3, y:  11.4 },
+  { plantId: 37, count:  1, x:  46.9, y:  10.5 },
+  { plantId: 33, count:  1, x:  43.1, y:  10.0 },
+  { plantId: 33, count:  1, x:  55.4, y:   9.8 },
+  { plantId: 33, count:  1, x:  41.6, y:  10.7 },
+  { plantId: 33, count:  1, x:  55.3, y:  11.1 }
+];
+
+
+// ─── State ────────────────────────────────────────────────────────────────────
+
+let imageLoaded = false;
+let editMode = false;
+let draggedEl = null;
+let dragOffset = { x: 0, y: 0 };
+let activeFilter = null;
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+
+function init() {
+  buildLegend();
+  buildPlantList();
+
+  const img = document.getElementById('garden-plan');
+  if (img.complete && img.naturalWidth > 0) {
+    onImageLoad();
+  }
+}
+
+function buildLegend() {
+  const bar = document.getElementById('legend-bar');
+  Object.entries(groups).forEach(([name, g]) => {
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.dataset.group = name;
+    item.innerHTML = `<div class="legend-dot" style="background:${g.color}"></div>${name}`;
+    item.addEventListener('click', () => filterByGroup(name, item));
+    bar.appendChild(item);
+  });
+}
+
+function filterByGroup(groupName, el) {
+  const allItems = document.querySelectorAll('.legend-item');
+  if (activeFilter === groupName) {
+    activeFilter = null;
+    allItems.forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.plant-marker').forEach(m => m.classList.remove('dimmed', 'highlighted'));
+  } else {
+    activeFilter = groupName;
+    allItems.forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.plant-marker').forEach(m => {
+      const pid = parseInt(m.dataset.plantId);
+      const plant = plants[pid];
+      if (plant.group === groupName) {
+        m.classList.remove('dimmed');
+        m.classList.add('highlighted');
+      } else {
+        m.classList.add('dimmed');
+        m.classList.remove('highlighted');
+      }
+    });
+  }
+}
+
+function buildPlantList() {
+  const container = document.getElementById('plant-list-items');
+  Object.entries(plants).forEach(([id, p]) => {
+    const g = groups[p.group];
+    const item = document.createElement('div');
+    item.className = 'plant-list-item';
+    item.innerHTML = `
+      <div class="list-num">${id}</div>
+      <img class="list-thumb" src="images/plant-${id}.jpg" alt=""
+           onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <div class="list-dot" style="background:${g.color};display:none"></div>
+      <div class="list-text">
+        <div class="list-polish">${p.polishName}${p.cultivar !== '—' ? ` '${p.cultivar}'` : ''}</div>
+        <div class="list-latin">${p.latinName}</div>
+      </div>
+      <div class="list-qty">${p.totalQty} szt</div>
+    `;
+    item.addEventListener('click', () => {
+      highlightPlant(parseInt(id));
+      toggleList();
+    });
+    container.appendChild(item);
+  });
+}
+
+function highlightPlant(plantId) {
+  document.querySelectorAll('.plant-marker').forEach(m => {
+    if (parseInt(m.dataset.plantId) === plantId) {
+      m.classList.add('highlighted');
+      m.classList.remove('dimmed');
+    } else {
+      m.classList.add('dimmed');
+      m.classList.remove('highlighted');
+    }
+  });
+  setTimeout(() => {
+    document.querySelectorAll('.plant-marker').forEach(m => {
+      m.classList.remove('highlighted', 'dimmed');
+    });
+  }, 2500);
+}
+
+// ─── Image & Markers ─────────────────────────────────────────────────────────
+
+function showNoImage() {
+  document.getElementById('no-image').style.display = 'flex';
+}
+
+function onImageLoad() {
+  const img = document.getElementById('garden-plan');
+  img.style.display = 'block';
+  document.getElementById('no-image').style.display = 'none';
+  imageLoaded = true;
+  renderMarkers();
+}
+
+
+function renderMarkers() {
+  const container = document.getElementById('garden-container');
+  container.querySelectorAll('.plant-marker').forEach(m => m.remove());
+
+  markers.forEach((m, idx) => {
+    const plant = plants[m.plantId];
+    if (!plant) return;
+    const g = groups[plant.group];
+
+    const el = document.createElement('div');
+    el.className = `plant-marker ${g.cls}`;
+    el.dataset.plantId = m.plantId;
+    el.dataset.markerIdx = idx;
+    el.textContent = m.plantId;
+    el.style.left = m.x + '%';
+    el.style.top  = m.y + '%';
+
+    // Hover effects
+    el.addEventListener('mouseenter', (e) => {
+      if (editMode) return;
+      showTooltip(e, plant, m.count);
+      highlightSameSpecies(m.plantId, el);
+    });
+    el.addEventListener('mousemove', moveTooltip);
+    el.addEventListener('mouseleave', () => {
+      if (editMode) return;
+      hideTooltip();
+      clearHighlight();
+    });
+
+    // Click
+    el.addEventListener('click', (e) => {
+      if (editMode) return;
+      e.stopPropagation();
+      openModal(m.plantId, m.count);
+    });
+
+    // Drag (edit mode)
+    el.addEventListener('mousedown', startDrag);
+
+    container.appendChild(el);
+  });
+}
+
+function highlightSameSpecies(plantId, hovered) {
+  document.querySelectorAll('.plant-marker').forEach(m => {
+    const pid = parseInt(m.dataset.plantId);
+    if (pid === plantId) {
+      m.classList.add('highlighted');
+      m.classList.remove('dimmed');
+    } else {
+      m.classList.add('dimmed');
+      m.classList.remove('highlighted');
+    }
+  });
+}
+
+function clearHighlight() {
+  if (activeFilter) return;
+  document.querySelectorAll('.plant-marker').forEach(m => {
+    m.classList.remove('highlighted', 'dimmed');
+  });
+}
+
+// ─── Tooltip ─────────────────────────────────────────────────────────────────
+
+function showTooltip(e, plant, count) {
+  const t = document.getElementById('tooltip');
+  const cultivarPart = plant.cultivar !== '—' ? ` '${plant.cultivar}'` : '';
+  t.innerHTML = `<b>${plant.polishName}${cultivarPart}</b><br><span style="opacity:.7;font-style:italic">${plant.latinName}</span><br><span style="opacity:.6">${plant.group}</span>`;
+  t.style.display = 'block';
+  moveTooltip(e);
+}
+
+function moveTooltip(e) {
+  const t = document.getElementById('tooltip');
+  let x = e.clientX + 14;
+  let y = e.clientY - 10;
+  if (x + 250 > window.innerWidth) x = e.clientX - 260;
+  t.style.left = x + 'px';
+  t.style.top  = y + 'px';
+}
+
+function hideTooltip() {
+  document.getElementById('tooltip').style.display = 'none';
+}
+
+// ─── Modal ────────────────────────────────────────────────────────────────────
+
+function openModal(plantId, countHere) {
+  const plant = plants[plantId];
+  const g = groups[plant.group];
+  const cultivarPart = plant.cultivar !== '—' ? ` '${plant.cultivar}'` : '';
+
+  document.getElementById('modal-header').style.background = g.color;
+  document.getElementById('modal-tag').textContent = `#${plantId} · ${plant.group}`;
+  document.getElementById('modal-name').textContent = plant.polishName + cultivarPart;
+  document.getElementById('modal-latin').textContent = plant.latinName;
+
+  let body = `
+    <img class="modal-photo" src="images/plant-${plantId}.jpg" alt="${plant.polishName}"
+         onerror="this.style.display='none'">
+    <div style="padding:18px 22px 22px">
+    <div class="badges">
+      <span class="badge">${plant.totalQty} szt łącznie</span>
+      ${plant.size !== '—' ? `<span class="badge">Rozmiar: ${plant.size}</span>` : ''}
+    </div>
+    <div class="section-title">Pielęgnacja</div>
+    <div class="care-grid">
+  `;
+
+  Object.entries(plant.care).forEach(([label, value]) => {
+    body += `
+      <div class="care-item">
+        <div class="care-label">${label}</div>
+        <div class="care-value">${value}</div>
+      </div>
+    `;
+  });
+
+  body += `</div>
+    <div class="section-title">Uwagi</div>
+    <div class="notes-box">${plant.notes}</div>
+  </div>`;
+
+  document.getElementById('modal-body').innerHTML = body;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modal-overlay') && e.target !== document.getElementById('modal-close')) {
+    if (!document.getElementById('modal-overlay').contains(e.target)) return;
+    if (e.target !== document.getElementById('modal-overlay')) return;
+  }
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+document.getElementById('modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+// ─── Edit Mode & Drag ─────────────────────────────────────────────────────────
+
+function toggleEdit() {
+  editMode = !editMode;
+  document.body.classList.toggle('edit-mode', editMode);
+  document.getElementById('edit-btn').textContent = editMode ? '✓ Zakończ edycję' : 'Tryb edycji pozycji';
+  if (!editMode) {
+    console.log('Aktualne pozycje znaczników (JSON):');
+    console.log(JSON.stringify(markers.map(m => ({ plantId: m.plantId, count: m.count, x: Math.round(m.x * 10) / 10, y: Math.round(m.y * 10) / 10 })), null, 2));
+  }
+}
+
+function startDrag(e) {
+  if (!editMode) return;
+  e.preventDefault();
+  draggedEl = e.currentTarget;
+  const container = document.getElementById('garden-container');
+  const rect = container.getBoundingClientRect();
+  const elRect = draggedEl.getBoundingClientRect();
+  dragOffset.x = e.clientX - elRect.left - elRect.width / 2;
+  dragOffset.y = e.clientY - elRect.top  - elRect.height / 2;
+  draggedEl.style.zIndex = 100;
+  document.addEventListener('mousemove', onDrag);
+  document.addEventListener('mouseup', endDrag);
+}
+
+function onDrag(e) {
+  if (!draggedEl) return;
+  const container = document.getElementById('garden-container');
+  const rect = container.getBoundingClientRect();
+  const x = ((e.clientX - dragOffset.x - rect.left) / rect.width)  * 100;
+  const y = ((e.clientY - dragOffset.y - rect.top)  / rect.height) * 100;
+  const cx = Math.max(0, Math.min(100, x));
+  const cy = Math.max(0, Math.min(100, y));
+  draggedEl.style.left = cx + '%';
+  draggedEl.style.top  = cy + '%';
+  const idx = parseInt(draggedEl.dataset.markerIdx);
+  markers[idx].x = Math.round(cx * 10) / 10;
+  markers[idx].y = Math.round(cy * 10) / 10;
+}
+
+function endDrag() {
+  if (draggedEl) {
+    draggedEl.style.zIndex = '';
+    draggedEl = null;
+  }
+  document.removeEventListener('mousemove', onDrag);
+  document.removeEventListener('mouseup', endDrag);
+}
+
+function exportPositions() {
+  const data = JSON.stringify(markers.map(m => ({
+    plantId: m.plantId,
+    count: m.count,
+    x: Math.round(m.x * 10) / 10,
+    y: Math.round(m.y * 10) / 10
+  })), null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'garden-positions.json';
+  a.click();
+}
+
+// ─── Plant List Panel ─────────────────────────────────────────────────────────
+
+function toggleList() {
+  document.getElementById('plant-list-panel').classList.toggle('open');
+}
+
+// ─── Start ────────────────────────────────────────────────────────────────────
+
+init();
+</script>
+</body>
+</html>
