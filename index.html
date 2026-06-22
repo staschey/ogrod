@@ -529,6 +529,58 @@
     .porady-source { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 4px; }
     .porady-source.mz { color: #2e7d32; }
     .porady-source.ai { color: #1565c0; }
+
+    /* Harmonogram */
+    .harmonogram-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55); z-index: 200;
+      overflow-y: auto; padding: 16px;
+      box-sizing: border-box;
+    }
+    .harmonogram-overlay.open { display: block; }
+    .harmonogram-modal {
+      background: white; border-radius: 14px;
+      max-width: 680px; margin: 0 auto;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.4);
+      overflow: hidden;
+    }
+    .harmonogram-header {
+      background: #2e3b2e; color: white;
+      padding: 20px 22px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 5;
+    }
+    .harmonogram-header h2 { margin: 0; font-size: 1.1rem; font-weight: 700; }
+    .harmonogram-header p { margin: 4px 0 0; font-size: 0.78rem; opacity: 0.7; }
+    .harmonogram-close {
+      background: rgba(255,255,255,0.18); border: none; color: white;
+      width: 32px; height: 32px; border-radius: 50%;
+      cursor: pointer; font-size: 18px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .h-month { border-bottom: 1px solid #f0f0f0; }
+    .h-month-title {
+      padding: 14px 20px; font-size: 0.88rem; font-weight: 700;
+      color: #fff; cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .h-month-title .h-month-label { display: flex; align-items: center; gap: 10px; }
+    .h-month-chevron { font-size: 0.7rem; opacity: 0.8; transition: transform 0.2s; }
+    .h-month.open .h-month-chevron { transform: rotate(90deg); }
+    .h-month-body { display: none; padding: 4px 0 12px; }
+    .h-month.open .h-month-body { display: block; }
+    .h-task {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 7px 20px; font-size: 0.8rem; line-height: 1.5; color: #333;
+    }
+    .h-task:hover { background: #fafafa; }
+    .h-task-icon { font-size: 0.95rem; flex-shrink: 0; margin-top: 1px; }
+    .h-task-text { flex: 1; }
+    .h-task-plants { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+    .h-plant-tag {
+      font-size: 0.68rem; padding: 1px 7px; border-radius: 10px;
+      color: white; font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -541,6 +593,7 @@
   <div class="header-actions">
     <button class="btn btn-secondary" onclick="toggleList()">Lista roślin</button>
     <button class="btn btn-secondary" onclick="togglePorady()">Porady ogólne</button>
+    <button class="btn btn-secondary" onclick="toggleHarmonogram()">Harmonogram</button>
     <button class="btn btn-secondary" id="edit-btn" onclick="toggleEdit()" style="display:none">Tryb edycji pozycji</button>
   </div>
 </header>
@@ -558,6 +611,149 @@
       <h2>Brak pliku mapy</h2>
       <p>Dodaj plik <code>garden_project_clean.png</code><br>do folderu z tym plikiem HTML i odświeżyć stronę.</p>
     </div>
+  </div>
+</div>
+
+<div class="harmonogram-overlay" id="harmonogram-overlay" onclick="closeHarmonogram(event)">
+  <div class="harmonogram-modal">
+    <div class="harmonogram-header">
+      <div><h2>&#128197; Harmonogram pielęgnacji</h2>
+      <p>Kliknij miesiąc, żeby rozwiniąć zadania</p></div>
+      <button class="harmonogram-close" onclick="toggleHarmonogram()">&#215;</button>
+    </div>
+  <div class="h-month" id="h-lut-mar">
+    <div class="h-month-title" style="background:#5c7a5c" onclick="toggleMonth('h-lut-mar')">
+      <span class="h-month-label"><span>Luty — Marzec</span><span style="font-weight:400;opacity:0.75;font-size:0.78rem">Wczesna wiosna</span></span>
+      <span class="h-month-chevron">&#9658;</span>
+    </div>
+    <div class="h-month-body">
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text">Przytnij <b>trzcinnik</b> nisko — startuje jako pierwsza z traw, już w marcu<div class="h-task-plants"><span class="h-plant-tag" style="background:#2e7d32">#20</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text">Przytnij lub wyczesz <b>selérię jesionną</b> — startuje wcześnie, częściowo zimozielona<div class="h-task-plants"><span class="h-plant-tag" style="background:#2e7d32">#36</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🍂</span><div class="h-task-text">Usuń stare liście <b>ciemierników</b> tuż przed poj. pąków — zapobiega czarnej plamistości. Liście niszczyć, nie kompostować<div class="h-task-plants"><span class="h-plant-tag" style="background:#e65100">#24</span><span class="h-plant-tag" style="background:#e65100">#25</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🍂</span><div class="h-task-text">Usuń uszkodzone mrozem liście <b>bergenii</b><div class="h-task-plants"><span class="h-plant-tag" style="background:#e65100">#18</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text">Przytnij zeszłoroczne pędy <b>szałwii</b> nisko do ziemi<div class="h-task-plants"><span class="h-plant-tag" style="background:#e65100">#33</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text">Przytnij suche pędy <b>rozchodników</b><div class="h-task-plants"><span class="h-plant-tag" style="background:#e65100">#34</span><span class="h-plant-tag" style="background:#e65100">#35</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🌿</span><div class="h-task-text">Zacznij nawozić <b>hortensje bukietowe</b> (marzec–sierpień)<div class="h-task-plants"><span class="h-plant-tag" style="background:#5d4037">#11</span><span class="h-plant-tag" style="background:#5d4037">#12</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🔍</span><div class="h-task-text">Zdejmij zimowe okrycia z <b>ambrowca</b> i <b>wierzby Hakuro</b> przy ociepleniu<div class="h-task-plants"><span class="h-plant-tag" style="background:#1565c0">#3</span><span class="h-plant-tag" style="background:#5d4037">#14</span></div></div></div>
+    </div>
+  </div>
+  <div class="h-month" id="h-mar-kwi">
+    <div class="h-month-title" style="background:#4a7c59" onclick="toggleMonth('h-mar-kwi')">
+      <span class="h-month-label"><span>Marzec — Kwiecień</span><span style="font-weight:400;opacity:0.75;font-size:0.78rem">Wiosna</span></span>
+      <span class="h-month-chevron">&#9658;</span>
+    </div>
+    <div class="h-month-body">
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text">Przytnij <b>hortensje bukietowe</b> mocno — do ok. 30–60 cm, nad najniższą parą zdrowych pąków<div class="h-task-plants"><span class="h-plant-tag" style="background:#5d4037">#11</span><span class="h-plant-tag" style="background:#5d4037">#12</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text">Przytnij <b>surmię 'Nana'</b> — coroczna redukcja korony o 50–60% wczesną wiosną<div class="h-task-plants"><span class="h-plant-tag" style="background:#1565c0">#2</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text">Przytnij <b>dereń biały</b> mocno i nisko — dla efektownych czerwonych pędów<div class="h-task-plants"><span class="h-plant-tag" style="background:#5d4037">#7</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text">Przytnij <b>wierzbę 'Hakuro-nishiki'</b> — biało-różowe liście pojawiają się tylko na młodych przyrostach<div class="h-task-plants"><span class="h-plant-tag" style="background:#5d4037">#14</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text">Przytnij <b>lawendę</b> — skróć zielone pędy o ok. 1/3. Nigdy w stare, zdrewniałe drewno!<div class="h-task-plants"><span class="h-plant-tag" style="background:#5d4037">#13</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text">Przytnij byliny do zera: <b>jeżówki, liliowce, piwonie, krwawnicę</b><div class="h-task-plants"><span class="h-plant-tag" style="background:#e65100">#21</span><span class="h-plant-tag" style="background:#e65100">#22</span><span class="h-plant-tag" style="background:#e65100">#26</span><span class="h-plant-tag" style="background:#e65100">#30</span><span class="h-plant-tag" style="background:#e65100">#28</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text">Przytnij <b>trawy ozdobne</b> do ok. 5 cm<div class="h-task-plants"><span class="h-plant-tag" style="background:#2e7d32">#20</span><span class="h-plant-tag" style="background:#2e7d32">#23</span><span class="h-plant-tag" style="background:#2e7d32">#29</span><span class="h-plant-tag" style="background:#2e7d32">#31</span><span class="h-plant-tag" style="background:#2e7d32">#37</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text">Przytnij <b>róże</b> do ok. 20 cm dla odmłodzenia (jeśli potrzebne)<div class="h-task-plants"><span class="h-plant-tag" style="background:#c62828">#16</span><span class="h-plant-tag" style="background:#c62828">#17</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text">Usuń odrosty spod miejsca szczepienia: <b>surmia</b>, <b>wierzba Hakuro</b>. Wycinaj zielone rewersje u <b>berberysa</b> i <b>trzm. Fortune'a</b><div class="h-task-plants"><span class="h-plant-tag" style="background:#1565c0">#2</span><span class="h-plant-tag" style="background:#5d4037">#14</span><span class="h-plant-tag" style="background:#5d4037">#5</span><span class="h-plant-tag" style="background:#6a1b9a">#10</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🏗️</span><div class="h-task-text">Postaw podpory przy <b>piwoniach</b> — zanim osiągną pełną wysokość<div class="h-task-plants"><span class="h-plant-tag" style="background:#e65100">#30</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🌿</span><div class="h-task-text">Nawóź <b>ambrowca</b> kompostem lub nawozem do drzew ozdobnych<div class="h-task-plants"><span class="h-plant-tag" style="background:#1565c0">#3</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🔍</span><div class="h-task-text">Sprawdź <b>winobluszcz</b> — jeśli nie trzyma się ogrodzenia, pomóż kołkiem. Pilnuj, żeby pędy nie szły po ziemi<div class="h-task-plants"><span class="h-plant-tag" style="background:#6a1b9a">#15</span></div></div></div>
+    </div>
+  </div>
+  <div class="h-month" id="h-maj">
+    <div class="h-month-title" style="background:#3a7d44" onclick="toggleMonth('h-maj')">
+      <span class="h-month-label"><span>Maj</span><span style="font-weight:400;opacity:0.75;font-size:0.78rem">Późna wiosna</span></span>
+      <span class="h-month-chevron">&#9658;</span>
+    </div>
+    <div class="h-month-body">
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text"><b>„Chelsea chop”</b> dla rozchodników — skróć kępy o 1/3–1/2 pod koniec maja. Zapobiega rozpadaniu i pokladaniu się<div class="h-task-plants"><span class="h-plant-tag" style="background:#e65100">#34</span><span class="h-plant-tag" style="background:#e65100">#35</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🔍</span><div class="h-task-text">Kontrola <b>pryszczarka liliowcowego</b> — zbieraj i niszcz zgrubiałe, brązowiejące pąki. Liliowiec żółtokwiatowy szczególnie narażony<div class="h-task-plants"><span class="h-plant-tag" style="background:#e65100">#26</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text">Drugie cięcie <b>wierzby 'Hakuro-nishiki'</b> dla letniej barwy liści (najpóźniej do początku sierpnia)<div class="h-task-plants"><span class="h-plant-tag" style="background:#5d4037">#14</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🐛</span><div class="h-task-text">Granulat na ślimaki przy <b>hoście</b> lub konsekwentne zbieranie ręczne<div class="h-task-plants"><span class="h-plant-tag" style="background:#e65100">#27</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">⚠️</span><div class="h-task-text"><b>Rozplenica</b> startuje bardzo późno (źdźbła pojawiają się w maju) — nie uznawaj za martwą zbyt wcześnie<div class="h-task-plants"><span class="h-plant-tag" style="background:#2e7d32">#31</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🌿</span><div class="h-task-text">Kontynuuj regularne nawożenie <b>hortensji</b><div class="h-task-plants"><span class="h-plant-tag" style="background:#5d4037">#11</span><span class="h-plant-tag" style="background:#5d4037">#12</span></div></div></div>
+    </div>
+  </div>
+  <div class="h-month" id="h-cze-lip">
+    <div class="h-month-title" style="background:#2d6a4f" onclick="toggleMonth('h-cze-lip')">
+      <span class="h-month-label"><span>Czerwiec — Lipiec</span><span style="font-weight:400;opacity:0.75;font-size:0.78rem">Lato</span></span>
+      <span class="h-month-chevron">&#9658;</span>
+    </div>
+    <div class="h-month-body">
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text"><b>Szałwia</b>: po przekwitnięciu przytnij bardzo krótko — ok. 5–6 cm nad ziemią. Powtórzy kwitnienie<div class="h-task-plants"><span class="h-plant-tag" style="background:#e65100">#33</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text"><b>Lawenda</b>: lekkie cięcie po przekwitnięciu<div class="h-task-plants"><span class="h-plant-tag" style="background:#5d4037">#13</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text">Formuj <b>winobluszcz</b> (lipiec) — kontroluj, żeby nie wchodził pod rynny<div class="h-task-plants"><span class="h-plant-tag" style="background:#6a1b9a">#15</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🌸</span><div class="h-task-text">Regularnie ścinaj przekwitnięte kwiaty <b>róż</b> — intensyfikuje kwitnienie<div class="h-task-plants"><span class="h-plant-tag" style="background:#c62828">#16</span><span class="h-plant-tag" style="background:#c62828">#17</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🌸</span><div class="h-task-text">Usuwaj przekwitnięte kwiaty <b>liliowca</b> — stymuluje powtarzające się kwitnienie do września<div class="h-task-plants"><span class="h-plant-tag" style="background:#e65100">#26</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text">Przytnij <b>krwawnicę</b> po kwitnieniu — ścinaj kłosy zanim nasiona dojrzeją<div class="h-task-plants"><span class="h-plant-tag" style="background:#e65100">#28</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🔍</span><div class="h-task-text">Sprawdź spody liści <b>trzm. Fortune'a</b> na przędziorki i tarczniki (szczególnie w suche lato)<div class="h-task-plants"><span class="h-plant-tag" style="background:#5d4037">#8</span><span class="h-plant-tag" style="background:#6a1b9a">#9</span><span class="h-plant-tag" style="background:#6a1b9a">#10</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🌿</span><div class="h-task-text">Kontynuuj nawożenie <b>hortensji</b> do sierpnia<div class="h-task-plants"><span class="h-plant-tag" style="background:#5d4037">#11</span><span class="h-plant-tag" style="background:#5d4037">#12</span></div></div></div>
+    </div>
+  </div>
+  <div class="h-month" id="h-sie">
+    <div class="h-month-title" style="background:#1f5c3a" onclick="toggleMonth('h-sie')">
+      <span class="h-month-label"><span>Sierpień</span><span style="font-weight:400;opacity:0.75;font-size:0.78rem">Koniec lata</span></span>
+      <span class="h-month-chevron">&#9658;</span>
+    </div>
+    <div class="h-month-body">
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text">Drugie cięcie formujące <b>cisa</b><div class="h-task-plants"><span class="h-plant-tag" style="background:#1565c0">#1</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text">Ostatnia szansa na cięcie <b>wierzby 'Hakuro-nishiki'</b> — nie tnij po sierpniu<div class="h-task-plants"><span class="h-plant-tag" style="background:#5d4037">#14</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text">Cięcie formujące <b>berberysów</b> (jeśli nie zrobione wcześniej)<div class="h-task-plants"><span class="h-plant-tag" style="background:#5d4037">#5</span><span class="h-plant-tag" style="background:#5d4037">#6</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🌸</span><div class="h-task-text">Sprawdź czy <b>szałwia</b> powtórzyła kwitnienie — ewentualnie drugie krótkie cięcie<div class="h-task-plants"><span class="h-plant-tag" style="background:#e65100">#33</span></div></div></div>
+    </div>
+  </div>
+  <div class="h-month" id="h-wrz-paz">
+    <div class="h-month-title" style="background:#7a5c2e" onclick="toggleMonth('h-wrz-paz')">
+      <span class="h-month-label"><span>Wrzesień — Październik</span><span style="font-weight:400;opacity:0.75;font-size:0.78rem">Jesień</span></span>
+      <span class="h-month-chevron">&#9658;</span>
+    </div>
+    <div class="h-month-body">
+      <div class="h-task"><span class="h-task-icon">🍂</span><div class="h-task-text">Zostaw trawy, liliowce i większość bylin na zimę — suche pędy chronią rośliny</div></div>
+      <div class="h-task"><span class="h-task-icon">🍂</span><div class="h-task-text">Zostaw suche pędy <b>rozchodników</b> i kwiatostany <b>jeżówek</b> — ozdoba i pokarm dla ptaków<div class="h-task-plants"><span class="h-plant-tag" style="background:#e65100">#34</span><span class="h-plant-tag" style="background:#e65100">#35</span><span class="h-plant-tag" style="background:#e65100">#21</span><span class="h-plant-tag" style="background:#e65100">#22</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🍂</span><div class="h-task-text">Zostaw kwiatostany <b>werbeny patagoskiej</b> — wysieje się na wiosnę<div class="h-task-plants"><span class="h-plant-tag" style="background:#e65100">#38</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text"><b>Werbena</b>: skróć łodygi o ok. 2/3 — ogranicza rozkołysanie przez wiatr<div class="h-task-plants"><span class="h-plant-tag" style="background:#e65100">#38</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🍂</span><div class="h-task-text">Usuń opadłe liście z poduch <b>karmnika</b> — gnijąca warstwa powoduje zamieranie<div class="h-task-plants"><span class="h-plant-tag" style="background:#e65100">#32</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🐛</span><div class="h-task-text">Usuń opadłe liście przy <b>wiśni ozdobnej</b> i <b>berberysy</b> — ogranicza przenoszenie chorób<div class="h-task-plants"><span class="h-plant-tag" style="background:#1565c0">#4</span><span class="h-plant-tag" style="background:#5d4037">#5</span><span class="h-plant-tag" style="background:#5d4037">#6</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🔍</span><div class="h-task-text">Oceń stan roślin i zdecyduj, które wymagają okrycia zimowego</div></div>
+    </div>
+  </div>
+  <div class="h-month" id="h-lis">
+    <div class="h-month-title" style="background:#6b4c3b" onclick="toggleMonth('h-lis')">
+      <span class="h-month-label"><span>Listopad</span><span style="font-weight:400;opacity:0.75;font-size:0.78rem">Przygotowanie do zimy</span></span>
+      <span class="h-month-chevron">&#9658;</span>
+    </div>
+    <div class="h-month-body">
+      <div class="h-task"><span class="h-task-icon">🏠</span><div class="h-task-text">Okryj <b>ambrowca</b> — szczególnie ważne w pierwszych latach; kopczykuj i okryj agrowłókninq<div class="h-task-plants"><span class="h-plant-tag" style="background:#1565c0">#3</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🏠</span><div class="h-task-text">Zabezpiecz miejsce szczepienia <b>wierzby 'Hakuro-nishiki'</b> na zimę<div class="h-task-plants"><span class="h-plant-tag" style="background:#5d4037">#14</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🏠</span><div class="h-task-text">Kopczykuj i okryj <b>winobluszcz</b> w pierwszych latach (odbija od korzenia)<div class="h-task-plants"><span class="h-plant-tag" style="background:#6a1b9a">#15</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🏠</span><div class="h-task-text">Lekko kopczykuj <b>ostnicę</b> — bez przesady, nadmiar okrycia sprzyja wilgoci i grzybom<div class="h-task-plants"><span class="h-plant-tag" style="background:#2e7d32">#37</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🏠</span><div class="h-task-text">Okryj młode egzemplarze <b>trzm. Fortune'a</b><div class="h-task-plants"><span class="h-plant-tag" style="background:#6a1b9a">#10</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🚿</span><div class="h-task-text">Przedmuchaj system nawadniania lub skontaktuj się z wykonawcą</div></div>
+      <div class="h-task"><span class="h-task-icon">🍂</span><div class="h-task-text">Usuń opadłe liście z poduch <b>karmnika</b><div class="h-task-plants"><span class="h-plant-tag" style="background:#e65100">#32</span></div></div></div>
+    </div>
+  </div>
+  <div class="h-month" id="h-gru-sty">
+    <div class="h-month-title" style="background:#3a4a5c" onclick="toggleMonth('h-gru-sty')">
+      <span class="h-month-label"><span>Grudzień — Styczeń</span><span style="font-weight:400;opacity:0.75;font-size:0.78rem">Zima</span></span>
+      <span class="h-month-chevron">&#9658;</span>
+    </div>
+    <div class="h-month-body">
+      <div class="h-task"><span class="h-task-icon">✂️</span><div class="h-task-text">Usuń stare liście <b>ciemierników</b> tuż przed poj. pąków (grudzień) — zapobiega czarnej plamistości<div class="h-task-plants"><span class="h-plant-tag" style="background:#e65100">#24</span><span class="h-plant-tag" style="background:#e65100">#25</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🔍</span><div class="h-task-text">Skontroluj zimowe okrycia roślin wrażliwych na mróz<div class="h-task-plants"><span class="h-plant-tag" style="background:#1565c0">#3</span><span class="h-plant-tag" style="background:#5d4037">#14</span><span class="h-plant-tag" style="background:#2e7d32">#37</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">📋</span><div class="h-task-text">Zaplanuj zmiany na kolejny sezon — po 3 latach od założenia ogrodu warto dokonać pierwszej oceny i korekt</div></div>
+    </div>
+  </div>
+  <div class="h-month" id="h-caly-sezon">
+    <div class="h-month-title" style="background:#2e3b2e" onclick="toggleMonth('h-caly-sezon')">
+      <span class="h-month-label"><span>Przez cały sezon</span><span style="font-weight:400;opacity:0.75;font-size:0.78rem">Pielęgnacja bieżąca</span></span>
+      <span class="h-month-chevron">&#9658;</span>
+    </div>
+    <div class="h-month-body">
+      <div class="h-task"><span class="h-task-icon">🌿</span><div class="h-task-text">Raz w tygodniu: sprawdź ogród i wyrwij chwasty, szczególnie między kamieniami, przy ogrodzeniu i w karmniku</div></div>
+      <div class="h-task"><span class="h-task-icon">💧</span><div class="h-task-text">Przy pieleniu sprawdzaj wilgotność gleby — powinna być wilgotna, nie mokra</div></div>
+      <div class="h-task"><span class="h-task-icon">🐛</span><div class="h-task-text">Regularna kontrola ślimaków przy <b>hoście</b><div class="h-task-plants"><span class="h-plant-tag" style="background:#e65100">#27</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🔍</span><div class="h-task-text">Pilnuj pędów <b>trzm. Fortune'a</b> i <b>winobluszczu</b> — nie dopuść do ukorzenienia na ziemi<div class="h-task-plants"><span class="h-plant-tag" style="background:#6a1b9a">#9</span><span class="h-plant-tag" style="background:#6a1b9a">#10</span><span class="h-plant-tag" style="background:#6a1b9a">#15</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🌸</span><div class="h-task-text">Regularnie ścinaj przekwitnięte kwiaty <b>róż</b><div class="h-task-plants"><span class="h-plant-tag" style="background:#c62828">#16</span><span class="h-plant-tag" style="background:#c62828">#17</span></div></div></div>
+      <div class="h-task"><span class="h-task-icon">🔍</span><div class="h-task-text"><b>Karmnik</b> jest poza automatycznym nawadnianiem — podlewaj ręcznie podczas suszy<div class="h-task-plants"><span class="h-plant-tag" style="background:#e65100">#32</span></div></div></div>
+    </div>
+  </div>
   </div>
 </div>
 
@@ -1889,6 +2085,21 @@ function exportPositions() {
 
 // ─── Plant List Panel ─────────────────────────────────────────────────────────
 
+
+function toggleHarmonogram() {
+  var ov = document.getElementById('harmonogram-overlay');
+  ov.classList.toggle('open');
+  document.getElementById('porady-panel').classList.remove('open');
+  document.getElementById('plant-list-panel').classList.remove('open');
+}
+function closeHarmonogram(e) {
+  if (e.target === document.getElementById('harmonogram-overlay')) {
+    document.getElementById('harmonogram-overlay').classList.remove('open');
+  }
+}
+function toggleMonth(id) {
+  document.getElementById(id).classList.toggle('open');
+}
 
 function togglePorady() {
   const panel = document.getElementById('porady-panel');
